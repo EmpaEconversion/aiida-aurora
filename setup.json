@@ -1,0 +1,60 @@
+{
+    "name": "aiida-aurora",
+    "author": "Loris Ercole",
+    "author_email": "loris.ercole@epfl.ch",
+    "description": "AiiDA plugin for the Aurora platform.",
+    "url": "https://github.com/epfl-theos/aiida-aurora",
+    "license": "MIT",
+    "classifiers": [
+        "Programming Language :: Python",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: MIT License",
+        "Natural Language :: English",
+        "Development Status :: 3 - Alpha",
+        "Framework :: AiiDA"
+    ],
+    "version": "0.1.0a0",
+    "entry_points": {
+        "aiida.data": [
+            "aurora = aiida_aurora.data:DiffParameters"
+        ],
+        "aiida.calculations": [
+            "aurora = aiida_aurora.calculations:DiffCalculation"
+        ],
+        "aiida.parsers": [
+            "aurora = aiida_aurora.parsers:DiffParser"
+        ],
+        "aiida.cmdline.data": [
+            "aurora = aiida_aurora.cli:data_cli"
+        ]
+    },
+    "include_package_data": true,
+    "setup_requires": ["reentry"],
+    "reentry_register": true,
+    "install_requires": [
+        "aiida-core>=1.6.5,<2.0.0",
+        "sqlalchemy<1.4",
+        "six",
+        "psycopg2-binary<2.9",
+        "voluptuous"
+    ],
+    "extras_require": {
+        "testing": [
+            "pgtest~=1.3.1",
+            "wheel~=0.31",
+            "coverage",
+            "pytest~=6.0",
+            "pytest-cov"
+        ],
+        "pre-commit": [
+            "pre-commit~=2.2",
+            "pylint>=2.5.0,<2.9"
+        ],
+        "docs": [
+            "sphinx",
+            "sphinxcontrib-contentui",
+            "sphinxcontrib-details-directive; python_version>='3.0'",
+            "sphinx-rtd-theme"
+        ]
+    }
+}
