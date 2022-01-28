@@ -16,7 +16,8 @@
     "version": "0.1.0a0",
     "entry_points": {
         "aiida.data": [
-            "aurora = aiida_aurora.data:DiffParameters"
+            "batterysample = aiida_aurora.data.battery:BatterySample",
+            "batterystate = aiida_aurora.data.battery:BatteryState"
         ],
         "aiida.calculations": [
             "aurora = aiida_aurora.calculations:DiffCalculation"
