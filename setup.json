@@ -17,10 +17,11 @@
     "entry_points": {
         "aiida.data": [
             "batterysample = aiida_aurora.data.battery:BatterySample",
-            "batterystate = aiida_aurora.data.battery:BatteryState"
+            "batterystate = aiida_aurora.data.battery:BatteryState",
+            "experimentspecs = aiida_aurora.data.experiment:DummyExperimentSpecs"
         ],
         "aiida.calculations": [
-            "aurora = aiida_aurora.calculations:DiffCalculation"
+            "auroraexperiment = aiida_aurora.calculations:BatteryFakeExperiment"
         ],
         "aiida.parsers": [
             "aurora = aiida_aurora.parsers:DiffParser"

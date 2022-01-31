@@ -15,9 +15,9 @@ from aiida_aurora.data.experiment import DummyExperimentSpecs
 
 class BatteryFakeExperiment(CalcJob):
     """
-    AiiDA calculation plugin wrapping the diff executable.
+    AiiDA calculation plugin for the fake_aurora_server script.
 
-    Simple AiiDA plugin wrapper for 'diffing' two files.
+    Simple AiiDA plugin that sends input data as json files to the fake Aurora server API script.
     """
     _INPUT_BATTERY_JSON_FILE = 'battery.json'
     _INPUT_EXPERIMENT_JSON_FILE = 'experiment.json'
@@ -64,7 +64,7 @@ class BatteryFakeExperiment(CalcJob):
         # codeinfo.cmdline_params = self.inputs.parameters.cmdline_params(
         #     file1_name=self.inputs.file1.filename,
         #     file2_name=self.inputs.file2.filename)
-        codeinfo.cmdline_params = [self._INPUT_BATTERY_JSON_FILE, self._INPUT_EXPERIMENT_JSON_FILE, 
+        codeinfo.cmdline_params = [self._INPUT_BATTERY_JSON_FILE, self._INPUT_EXPERIMENT_JSON_FILE,
                     '-o', self._OUTPUT_JSON_FILE]
         codeinfo.code_uuid = self.inputs.code.uuid
         codeinfo.stdout_name = self.metadata.options.output_filename
