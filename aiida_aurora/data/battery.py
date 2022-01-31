@@ -31,7 +31,7 @@ batterysample_specs = {
         'Mw_gmol': float,   # molecular wright of active material [g/mol]
         'Aw_gmol': float,   # atomic weight of intercalated ion [g/mol]
         'N': int,           # number of electrons transferred per intercalated ion
-        'dQ': float,        # theoretical capacity = N * (m/Mw) * (e * NA), convert from kC to Ah
+        'dQ': float,        # theoretical capacity [Ah], dQ = N * (m/Mw) * (e * NA), convert from kC to Ah
     },
     'sample_id': 'str',     # battery (unique?) ID (optional?)
 }

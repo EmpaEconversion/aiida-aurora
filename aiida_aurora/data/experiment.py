@@ -1,0 +1,101 @@
+# -*- coding: utf-8 -*-
+"""
+A dummy experiment specifications class.
+"""
+
+import json
+from voluptuous import Schema, Optional
+from aiida.orm import Dict
+
+dummyexperiment_specs = {
+    'description': {
+        'technique': str,
+        Optional('comments'): str,  # comments
+    },
+    'parameters': {
+        'time': float,  # length of the OCV step [s]
+        'record_every_dE': float,  # record a datapoint at prescribed voltage spacing [V]
+        'record_every_dt': float,  # record a datapoint at prescribed time spacing [s]
+    },
+}
+
+
+class DummyExperimentSpecs(Dict):  # pylint: disable=too-many-ancestors
+    """
+    An experiment specification object.
+
+    This class represents the specifications used in an experiment.
+    """
+
+    # "voluptuous" schema  to add automatic validation
+    schema = Schema(dummyexperiment_specs)
+
+    # pylint: disable=redefined-builtin
+    def __init__(self, dict=None, **kwargs):
+        """
+        Constructor for the data class
+
+        Usage: ``DummyExperimentSpecs(dict{...})``
+
+        :param parameters_dict: dictionary with battery specifications
+        :param type parameters_dict: dict
+
+        """
+        dict = self.validate(dict)
+        super().__init__(dict=dict, **kwargs)
+
+    def validate(self, parameters_dict):  # pylint: disable=no-self-use
+        """Validate command line options.
+
+        Uses the voluptuous package for validation. Find out about allowed keys using::
+
+            print(DummyExperimentSpecs.schema)
+
+        :param parameters_dict: dictionary with battery specifications
+        :param type parameters_dict: dict
+        :returns: validated dictionary
+        """
+        return DummyExperimentSpecs.schema(parameters_dict)
+
+    def get_json(self):
+        """Get a JSON file containing the DummyExperimentSpecs specs."""
+
+        # this can be customized to fit the desired format
+        object_to_be_serialized = self.get_dict()
+        return json.dumps(object_to_be_serialized)
+
+
+#    def cmdline_params(self, file1_name, file2_name):
+#        """Synthesize command line parameters.
+#
+#        e.g. [ '--ignore-case', 'filename1', 'filename2']
+#
+#        :param file_name1: Name of first file
+#        :param type file_name1: str
+#        :param file_name2: Name of second file
+#        :param type file_name2: str
+#
+#        """
+#        parameters = []
+#
+#        pm_dict = self.get_dict()
+#        for k in pm_dict.keys():
+#            if pm_dict[k]:
+#                parameters += ['--' + k]
+#
+#        parameters += [file1_name, file2_name]
+#
+#        return [str(p) for p in parameters]
+
+    def __str__(self):
+        """String representation of node.
+
+        Append values of dictionary to usual representation. E.g.::
+
+            uuid: b416cbee-24e8-47a8-8c11-6d668770158b (pk: 590)
+            {'ignore-case': True}
+
+        """
+        string = super().__str__()
+        string += '\n' + str(self.get_dict())
+        return string

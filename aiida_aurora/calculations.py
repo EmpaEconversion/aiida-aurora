@@ -6,18 +6,23 @@ Register calculations via the "aiida.calculations" entry point in setup.json.
 """
 from aiida.common import datastructures
 from aiida.engine import CalcJob
-from aiida.orm import SinglefileData
+# from aiida.orm import SinglefileData
+from aiida.orm import Dict
 from aiida.plugins import DataFactory
+from aiida_aurora.data.battery import BatterySample, BatteryState
+from aiida_aurora.data.experiment import DummyExperimentSpecs
 
-DiffParameters = DataFactory('aurora')
 
-
-class DiffCalculation(CalcJob):
+class BatteryFakeExperiment(CalcJob):
     """
     AiiDA calculation plugin wrapping the diff executable.
 
     Simple AiiDA plugin wrapper for 'diffing' two files.
     """
+    _INPUT_BATTERY_JSON_FILE = 'battery.json'
+    _INPUT_EXPERIMENT_JSON_FILE = 'experiment.json'
+    _OUTPUT_JSON_FILE = 'output.json'
+    _DEFAULT_STDOUT_FILE = 'output.log'
 
     @classmethod
     def define(cls, spec):
@@ -33,14 +38,13 @@ class DiffCalculation(CalcJob):
         spec.inputs['metadata']['options']['parser_name'].default = 'aurora'
 
         # new ports
-        spec.input('metadata.options.output_filename', valid_type=str, default='patch.diff')
-        spec.input('parameters', valid_type=DiffParameters, help='Command line parameters for diff')
-        spec.input('file1', valid_type=SinglefileData, help='First file to be compared.')
-        spec.input('file2', valid_type=SinglefileData, help='Second file to be compared.')
-        spec.output('aurora', valid_type=SinglefileData, help='diff between file1 and file2.')
+        spec.input('metadata.options.output_filename', valid_type=str, default=cls._DEFAULT_STDOUT_FILE)
+        spec.input('battery_sample', valid_type=BatterySample, help='Battery sample used.')
+        spec.input('exp_specs', valid_type=DummyExperimentSpecs, help='Experiment specifications.')
+        spec.output('results', valid_type=Dict, help='Results of the experiment.')  # a proper type should be defined
+        #spec.output('battery_state', valid_type=BatteryState, help='State of the battery after the experiment.')
 
         spec.exit_code(300, 'ERROR_MISSING_OUTPUT_FILES', message='Calculation did not produce all expected output files.')
-
 
     def prepare_for_submission(self, folder):
         """
@@ -50,10 +54,18 @@ class DiffCalculation(CalcJob):
             needed by the calculation.
         :return: `aiida.common.datastructures.CalcInfo` instance
         """
+
+        with open(self._INPUT_BATTERY_JSON_FILE, 'w') as handle:
+            handle.write(self.inputs.battery_sample.get_json())
+        with open(self._INPUT_EXPERIMENT_JSON_FILE, 'w') as handle:
+            handle.write(self.inputs.exp_specs.get_json())
+
         codeinfo = datastructures.CodeInfo()
-        codeinfo.cmdline_params = self.inputs.parameters.cmdline_params(
-            file1_name=self.inputs.file1.filename,
-            file2_name=self.inputs.file2.filename)
+        # codeinfo.cmdline_params = self.inputs.parameters.cmdline_params(
+        #     file1_name=self.inputs.file1.filename,
+        #     file2_name=self.inputs.file2.filename)
+        codeinfo.cmdline_params = [self._INPUT_BATTERY_JSON_FILE, self._INPUT_EXPERIMENT_JSON_FILE, 
+                    '-o', self._OUTPUT_JSON_FILE]
         codeinfo.code_uuid = self.inputs.code.uuid
         codeinfo.stdout_name = self.metadata.options.output_filename
         codeinfo.withmpi = self.inputs.metadata.options.withmpi
@@ -61,10 +73,7 @@ class DiffCalculation(CalcJob):
         # Prepare a `CalcInfo` to be returned to the engine
         calcinfo = datastructures.CalcInfo()
         calcinfo.codes_info = [codeinfo]
-        calcinfo.local_copy_list = [
-            (self.inputs.file1.uuid, self.inputs.file1.filename, self.inputs.file1.filename),
-            (self.inputs.file2.uuid, self.inputs.file2.filename, self.inputs.file2.filename),
-        ]
-        calcinfo.retrieve_list = [self.metadata.options.output_filename]
+        calcinfo.local_copy_list = []
+        calcinfo.retrieve_list = [self.metadata.options.output_filename, self._OUTPUT_JSON_FILE]
 
         return calcinfo

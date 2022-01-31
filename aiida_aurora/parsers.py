@@ -8,7 +8,9 @@ from aiida.engine import ExitCode
 from aiida.parsers.parser import Parser
 from aiida.plugins import CalculationFactory
 from aiida.common import exceptions
-from aiida.orm import SinglefileData
+# from aiida.orm import SinglefileData
+from aiida.orm import Dict
+import json
 
 DiffCalculation = CalculationFactory('aurora')
 
@@ -37,20 +39,21 @@ class DiffParser(Parser):
 
         :returns: an exit code, if parsing fails (or nothing if parsing succeeds)
         """
-        output_filename = self.node.get_option('output_filename')
+        stdout_filename = self.node.get_option('output_filename')
+        output_json_filename = self.node._OUTPUT_JSON_FILE
 
         # Check that folder content is as expected
         files_retrieved = self.retrieved.list_object_names()
-        files_expected = [output_filename]
+        files_expected = [stdout_filename, output_json_filename]
         # Note: set(A) <= set(B) checks whether A is a subset of B
         if not set(files_expected) <= set(files_retrieved):
             self.logger.error("Found files '{}', expected to find '{}'".format(files_retrieved, files_expected))
             return self.exit_codes.ERROR_MISSING_OUTPUT_FILES
 
         # add output file
-        self.logger.info("Parsing '{}'".format(output_filename))
-        with self.retrieved.open(output_filename, 'rb') as handle:
-            output_node = SinglefileData(file=handle)
-        self.out('aurora', output_node)
+        self.logger.info("Parsing '{}'".format(output_json_filename))
+        with self.retrieved.open(output_json_filename, 'r') as handle:
+            output_node = Dict(dict=json.load(handle))  # this should be changed in the appropriate node data type
+        self.out('results', output_node)
 
         return ExitCode(0)
