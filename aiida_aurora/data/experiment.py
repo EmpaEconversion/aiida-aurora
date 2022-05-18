@@ -4,20 +4,8 @@ A dummy experiment specifications class.
 """
 
 import json
-from voluptuous import Schema, Optional
+from aurora.schemas.cycling import ElectroChemSequence as ElectroChemSequenceSchema
 from aiida.orm import Dict
-
-dummyexperiment_specs = {
-    'description': {
-        'technique': str,
-        Optional('comments'): str,  # comments
-    },
-    'parameters': {
-        'time': float,  # length of the OCV step [s]
-        'record_every_dE': float,  # record a datapoint at prescribed voltage spacing [V]
-        'record_every_dt': float,  # record a datapoint at prescribed time spacing [s]
-    },
-}
 
 
 class DummyExperimentSpecs(Dict):  # pylint: disable=too-many-ancestors
@@ -27,8 +15,8 @@ class DummyExperimentSpecs(Dict):  # pylint: disable=too-many-ancestors
     This class represents the specifications used in an experiment.
     """
 
-    # "voluptuous" schema  to add automatic validation
-    schema = Schema(dummyexperiment_specs)
+    # "pydantic" schema  to add automatic validation
+    schema = ElectroChemSequenceSchema
 
     # pylint: disable=redefined-builtin
     def __init__(self, dict=None, **kwargs):
@@ -55,7 +43,7 @@ class DummyExperimentSpecs(Dict):  # pylint: disable=too-many-ancestors
         :param type parameters_dict: dict
         :returns: validated dictionary
         """
-        return DummyExperimentSpecs.schema(parameters_dict)
+        return ElectroChemSequenceSchema(parameters_dict).dict()
 
     def get_json(self):
         """Get a JSON file containing the DummyExperimentSpecs specs."""

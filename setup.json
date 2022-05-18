@@ -38,7 +38,7 @@
         "sqlalchemy<1.4",
         "six",
         "psycopg2-binary<2.9",
-        "voluptuous"
+        "pydantic"
     ],
     "extras_require": {
         "testing": [

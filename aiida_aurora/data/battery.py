@@ -5,42 +5,11 @@ Data types provided by plugin
 Register data types via the "aiida.data" entry point in setup.json.
 """
 
-from enum import Flag
+# from enum import Flag
 import json
-from voluptuous import Schema, Optional
+# from voluptuous import Schema, Optional
 from aiida.orm import Dict
-
-
-class ChargeState(Flag):
-    """Defines the charge state of a battery."""
-    CHARGED = True
-    DISCHARGED = False
-
-
-# yapf: disable
-batterysample_specs = {
-    'description': {
-        'electrode': str,               # electrode material
-        'initial_state': ChargeState,   # initial state (charged/discharged)
-        'electrolyte': str,             # electrolyte material
-        Optional('comments'): str,      # comments
-    },
-    'parameters': {
-        'C_Ah': float,      # battery capacity [Ah]
-        'm_g': float,       # mass of active material [g]
-        'Mw_gmol': float,   # molecular wright of active material [g/mol]
-        'Aw_gmol': float,   # atomic weight of intercalated ion [g/mol]
-        'N': int,           # number of electrons transferred per intercalated ion
-        'dQ': float,        # theoretical capacity [Ah], dQ = N * (m/Mw) * (e * NA), convert from kC to Ah
-    },
-    'sample_id': 'str',     # battery (unique?) ID (optional?)
-}
-
-batterystate_specs = {
-    'sample': batterysample_specs.copy(),
-    'state_id': int,
-}
-# yapf: enable
+from aurora.schemas.data_schemas import BatterySample as BatterySampleSchema, BatteryState as BatteryStateSchema
 
 
 class BatterySample(Dict):  # pylint: disable=too-many-ancestors
@@ -50,8 +19,8 @@ class BatterySample(Dict):  # pylint: disable=too-many-ancestors
     This class represents a battery sample.
     """
 
-    # "voluptuous" schema  to add automatic validation
-    schema = Schema(batterysample_specs)
+    # "pydantic" schema to add automatic validation
+    schema = BatterySampleSchema
 
     # pylint: disable=redefined-builtin
     def __init__(self, dict=None, **kwargs):
@@ -78,7 +47,7 @@ class BatterySample(Dict):  # pylint: disable=too-many-ancestors
         :param type parameters_dict: dict
         :returns: validated dictionary
         """
-        return BatterySample.schema(parameters_dict)
+        return BatterySampleSchema(parameters_dict).dict()
 
     def get_json(self):
         """Get a JSON file containing the BatterySample specs."""
@@ -133,7 +102,7 @@ class BatteryState(Dict):  # pylint: disable=too-many-ancestors
     """
 
     # "voluptuous" schema  to add automatic validation
-    schema = Schema(batterystate_specs)
+    schema = BatteryStateSchema
 
     # pylint: disable=redefined-builtin
     def __init__(self, dict=None, **kwargs):
@@ -160,7 +129,7 @@ class BatteryState(Dict):  # pylint: disable=too-many-ancestors
         :param type parameters_dict: dict
         :returns: validated dictionary
         """
-        return BatteryState.schema(parameters_dict)
+        return BatteryStateSchema(parameters_dict).dict()
 
     def __str__(self):
         """String representation of node.
