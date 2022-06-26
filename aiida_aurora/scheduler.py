@@ -52,7 +52,16 @@ class TomatoResource(JobResource):
         :return: optional tuple of parsed resource settings
         """
         resources = AttributeDict()
+        # *Essentially ignore all job resources!*
         return resources
+
+    def __init__(self, **kwargs):
+        """Initialize the job resources from the passed arguments.
+
+        :raises ValueError: if the resources are invalid or incomplete
+        """
+        resources = self.validate_resources(**kwargs)
+        super().__init__(resources)
 
     @classmethod
     def accepts_default_mpiprocs_per_machine(cls):
@@ -121,20 +130,7 @@ class TomatoScheduler(Scheduler):
 
         :param job_tmpl: a ``JobTemplate`` instance with relevant parameters set.
         """
-        lines = []
-
-        # TODO: read the payload version and load the appropriate schema
-        # from dgbowl_schemas.tomato.payload_0_1.tomato import Tomato
-        # - should 'version: "0.1"' be written in the submit script?
-        # - name of the file containing the sample and method
-        # PAYLOAD v 0.1 has everything in one file... but tomato and sample/method should be divided
-
-        if job_tmpl.tomato_schema:
-            lines.append(yaml.dump({'tomato': job_tmpl.tomato_schema.dict()}))
-        else:
-            raise ValueError('tomato_schema is required for the Tomato scheduler plugin')
-
-        return '\n'.join(lines)
+        return ''
 
     def _get_submit_command(self, submit_script):
         """Return the string to execute to submit a given script.
@@ -144,7 +140,10 @@ class TomatoScheduler(Scheduler):
         :param submit_script: the path of the submit script relative to the working directory.
         :return: the string to execute to submit a given script.
         """
-        submit_command = f'ketchup submit {submit_script}'
+        # Similarly to the 'direct' scheduler, we submit a bash script that actually executes
+        # `ketchup submit {payload}`
+        # the output of it is parsed *immediately* by _parse_submit_output
+        submit_command = f'bash {submit_script}'
 
         _LOGGER.info(f'submitting with: {submit_command}')
 
