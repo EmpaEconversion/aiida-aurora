@@ -3,7 +3,7 @@
 A dummy experiment specifications class.
 """
 
-import json
+import json, yaml
 from aurora.schemas.cycling import ElectroChemSequence as ElectroChemSequenceSchema
 from aiida.orm import Dict
 
@@ -51,6 +51,13 @@ class DummyExperimentSpecs(Dict):  # pylint: disable=too-many-ancestors
         # this can be customized to fit the desired format
         object_to_be_serialized = self.get_dict()
         return json.dumps(object_to_be_serialized)
+
+    def get_yaml(self):
+        """Get a YAML file containing the BatterySample specs."""
+
+        # this can be customized to fit the desired format
+        object_to_be_serialized = self.get_dict()
+        return yaml.dump(object_to_be_serialized)
 
 
 #    def cmdline_params(self, file1_name, file2_name):

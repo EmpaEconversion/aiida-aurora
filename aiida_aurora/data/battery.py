@@ -6,7 +6,7 @@ Register data types via the "aiida.data" entry point in setup.json.
 """
 
 # from enum import Flag
-import json
+import json, yaml
 # from voluptuous import Schema, Optional
 from aiida.orm import Dict
 from aurora.schemas.data_schemas import BatterySample as BatterySampleSchema, BatteryState as BatteryStateSchema
@@ -55,6 +55,13 @@ class BatterySample(Dict):  # pylint: disable=too-many-ancestors
         # this can be customized to fit the desired format
         object_to_be_serialized = self.get_dict()
         return json.dumps(object_to_be_serialized)
+
+    def get_yaml(self):
+        """Get a YAML file containing the BatterySample specs."""
+
+        # this can be customized to fit the desired format
+        object_to_be_serialized = self.get_dict()
+        return yaml.dump(object_to_be_serialized)
 
 
 #    def cmdline_params(self, file1_name, file2_name):
