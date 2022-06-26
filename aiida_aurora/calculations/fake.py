@@ -10,7 +10,7 @@ from aiida.engine import CalcJob
 from aiida.orm import Dict
 from aiida.plugins import DataFactory
 from aiida_aurora.data.battery import BatterySample, BatteryState
-from aiida_aurora.data.experiment import DummyExperimentSpecs
+from aiida_aurora.data.experiment import CyclingSpecs
 
 
 class BatteryFakeExperiment(CalcJob):
@@ -40,7 +40,7 @@ class BatteryFakeExperiment(CalcJob):
         # new ports
         spec.input('metadata.options.output_filename', valid_type=str, default=cls._DEFAULT_STDOUT_FILE)
         spec.input('battery_sample', valid_type=BatterySample, help='Battery sample used.')
-        spec.input('exp_specs', valid_type=DummyExperimentSpecs, help='Experiment specifications.')
+        spec.input('exp_specs', valid_type=CyclingSpecs, help='Experiment specifications.')
         spec.output('results', valid_type=Dict, help='Results of the experiment.')  # a proper type should be defined
         #spec.output('battery_state', valid_type=BatteryState, help='State of the battery after the experiment.')
 

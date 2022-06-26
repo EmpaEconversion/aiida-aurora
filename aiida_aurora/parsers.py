@@ -12,7 +12,7 @@ from aiida.common import exceptions
 from aiida.orm import Dict
 import json
 
-DiffCalculation = CalculationFactory('aurora')
+BatteryCycler = CalculationFactory('aurora.cycler')
 
 
 class DiffParser(Parser):

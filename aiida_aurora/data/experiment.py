@@ -58,7 +58,7 @@ class CyclingSpecs(Dict):  # pylint: disable=too-many-ancestors
         """Get a YAML file containing the BatterySample specs."""
 
         # this can be customized to fit the desired format
-        object_to_be_serialized = self.get_dict()
+        object_to_be_serialized = {'method': self.get_dict()}
         return yaml.dump(object_to_be_serialized)
 
 

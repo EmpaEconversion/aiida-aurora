@@ -16,12 +16,13 @@
     "version": "0.1.0a0",
     "entry_points": {
         "aiida.data": [
-            "batterysample = aiida_aurora.data.battery:BatterySample",
-            "batterystate = aiida_aurora.data.battery:BatteryState",
-            "experimentspecs = aiida_aurora.data.experiment:DummyExperimentSpecs"
+            "aurora.batterysample = aiida_aurora.data.battery:BatterySample",
+            "aurora.batterystate = aiida_aurora.data.battery:BatteryState",
+            "aurora.cyclingspecs = aiida_aurora.data.experiment:CyclingSpecs"
         ],
         "aiida.calculations": [
-            "auroraexperiment = aiida_aurora.calculations:BatteryFakeExperiment"
+            "aurora.fake = aiida_aurora.calculations.fake:BatteryFakeExperiment",
+            "aurora.cycler = aiida_aurora.calculations.cycler:BatteryCycler"
         ],
         "aiida.parsers": [
             "aurora = aiida_aurora.parsers:DiffParser"
