@@ -35,6 +35,8 @@ class BatterySample(Dict):  # pylint: disable=too-many-ancestors
         """
         dict = self.validate(dict)
         super().__init__(dict=dict, **kwargs)
+        if not self.label:
+            self.label = self.dict['metadata'].get('name')
 
     def validate(self, parameters_dict):  # pylint: disable=no-self-use
         """Validate command line options.
@@ -47,7 +49,11 @@ class BatterySample(Dict):  # pylint: disable=too-many-ancestors
         :param type parameters_dict: dict
         :returns: validated dictionary
         """
-        return BatterySampleSchema(parameters_dict).dict()
+        d = BatterySampleSchema(**parameters_dict).dict()
+        # Manual fix to convert date-times to ISO string format
+        # TODO integrate this into the data schema
+        d['metadata']['creation_datetime'] = d['metadata']['creation_datetime'].isoformat()
+        return d
 
     def get_json(self):
         """Get a JSON file containing the BatterySample specs."""

@@ -8,7 +8,7 @@ from aurora.schemas.cycling import ElectroChemSequence as ElectroChemSequenceSch
 from aiida.orm import Dict
 
 
-class DummyExperimentSpecs(Dict):  # pylint: disable=too-many-ancestors
+class CyclingSpecs(Dict):  # pylint: disable=too-many-ancestors
     """
     An experiment specification object.
 
@@ -31,6 +31,8 @@ class DummyExperimentSpecs(Dict):  # pylint: disable=too-many-ancestors
         """
         dict = self.validate(dict)
         super().__init__(dict=dict, **kwargs)
+        # if not self.label:
+        #     self.label = self.dict['metadata'].get('name')
 
     def validate(self, parameters_dict):  # pylint: disable=no-self-use
         """Validate command line options.
@@ -43,7 +45,7 @@ class DummyExperimentSpecs(Dict):  # pylint: disable=too-many-ancestors
         :param type parameters_dict: dict
         :returns: validated dictionary
         """
-        return ElectroChemSequenceSchema(parameters_dict).dict()
+        return ElectroChemSequenceSchema(**parameters_dict).dict()
 
     def get_json(self):
         """Get a JSON file containing the DummyExperimentSpecs specs."""

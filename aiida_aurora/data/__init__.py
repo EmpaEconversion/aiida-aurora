@@ -6,4 +6,4 @@ Register data types via the "aiida.data" entry point in setup.json.
 """
 
 from .battery import BatterySample, BatteryState
-from .experiment import DummyExperimentSpecs
+from .experiment import CyclingSpecs
