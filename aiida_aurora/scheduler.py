@@ -85,7 +85,7 @@ class TomatoScheduler(Scheduler):
         :return: a string of the command to be executed to determine the active jobs.
         """
 
-        command = ['ketchup', '-t', 'status']
+        command = ['ketchup', 'status']
 
         if user:
             raise FeatureNotAvailable('Cannot query by user')
@@ -114,7 +114,7 @@ class TomatoScheduler(Scheduler):
 
         The output text is just retrieved, and returned for logging purposes.
         """
-        return f'ketchup -t status {escape_for_bash(job_id)}'
+        return f'ketchup status {escape_for_bash(job_id)}'
 
     def _get_submit_script_header(self, job_tmpl):
         """Return the submit script final part, using the parameters from the job template.
@@ -144,7 +144,7 @@ class TomatoScheduler(Scheduler):
         :param submit_script: the path of the submit script relative to the working directory.
         :return: the string to execute to submit a given script.
         """
-        submit_command = f'ketchup -t submit {submit_script}'
+        submit_command = f'ketchup submit {submit_script}'
 
         _LOGGER.info(f'submitting with: {submit_command}')
 
@@ -190,7 +190,7 @@ class TomatoScheduler(Scheduler):
             elif len(job) == 3:
                 this_job.pipeline = job[2]
             else:
-                raise ValueError('More than 3 columns returned by ketchup -t status queue')
+                raise ValueError('More than 3 columns returned by ketchup status queue')
 
             # Everything goes here anyway for debugging purposes
             this_job.raw_data = job
@@ -228,7 +228,7 @@ class TomatoScheduler(Scheduler):
     def _get_kill_command(self, jobid):
         """Return the command to kill the job with specified jobid."""
 
-        kill_command = f'ketchup -t cancel {jobid}'
+        kill_command = f'ketchup cancel {jobid}'
 
         _LOGGER.info(f'killing job {jobid}: {kill_command}')
 
