@@ -4,13 +4,14 @@ Plugin for the Tomato scheduler.
 """
 import re
 import logging
-import yaml
+import datetime
 
 from aiida.common.escaping import escape_for_bash
 from aiida.schedulers import Scheduler, SchedulerError
 from aiida.schedulers.datastructures import JobInfo, JobResource, JobState
 from aiida.common.exceptions import FeatureNotAvailable
 from aiida.common.extendeddicts import AttributeDict
+from subprocess import _mswindows
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -94,28 +95,23 @@ class TomatoScheduler(Scheduler):
         :return: a string of the command to be executed to determine the active jobs.
         """
 
-        command = ['ketchup', 'status']
-
         if user:
             raise FeatureNotAvailable('Cannot query by user')
 
         if jobs:
-            if len(jobs) > 1:
-                raise FeatureNotAvailable('ketchup status supports only one job per time')
-
             if isinstance(jobs, str):
-                command.append(f'{escape_for_bash(jobs)}')
+                command = f'ketchup staus {escape_for_bash(jobs)}'
             else:
                 try:
-                    command.append(f"{' '.join(escape_for_bash(j) for j in jobs)}")
+                    command = ' && '.join(f'ketchup status {j}' for j in jobs)
                 except TypeError:
                     raise TypeError("If provided, the 'jobs' variable must be a string or an iterable of strings")
         else:
-            command.append('queue')
+            command = 'kethup status queue'
 
-        comm = ' '.join(command)
-        _LOGGER.debug(f'ketchup command: {comm}')
-        return comm
+        # _LOGGER.debug(f'ketchup command: {command}')
+        _LOGGER.warning(f'ketchup command: {command}')
+        return command
 
     def _get_detailed_job_info_command(self, job_id):
         """Return the command to run to get the detailed information on a job,
@@ -143,9 +139,11 @@ class TomatoScheduler(Scheduler):
         # Similarly to the 'direct' scheduler, we submit a bash script that actually executes
         # `ketchup submit {payload}`
         # the output of it is parsed *immediately* by _parse_submit_output
-        submit_command = f'bash {submit_script}'
+        shell_cmd = 'powershell' if _mswindows else 'bash'
+        submit_command = f'{shell_cmd} {submit_script}'
 
-        _LOGGER.info(f'submitting with: {submit_command}')
+        # _LOGGER.info(f'submitting with: {submit_command}')
+        _LOGGER.warning(f'submitting with: {submit_command}')
 
         return submit_command
 
@@ -156,7 +154,7 @@ class TomatoScheduler(Scheduler):
         """
         if retval != 0:
             raise SchedulerError(
-                f"""kethup returned exit code {retval} (_parse_joblist_output function)"""
+                f"""ketchup returned exit code {retval} (_parse_joblist_output function)"""
                 f"""stdout='{stdout.strip()}'"""
                 f"""stderr='{stderr.strip()}'"""
             )
@@ -165,37 +163,60 @@ class TomatoScheduler(Scheduler):
                 f"ketchup returned exit code 0 (_parse_joblist_output function) but non-empty stderr='{stderr.strip()}'"
             )
 
-        jobdata_raw = [
-            l.split()
-            for l in stdout.splitlines()
-            if l and 'jobid' not in l and '==========================================' not in l
-        ]
+        jobdata_raw = [l.split() for l in stdout.splitlines() if l]
 
         # Create dictionary and parse specific fields
         job_list = []
-        for job in jobdata_raw:
 
-            this_job = JobInfo()
-            this_job.job_id = job[0]
+        if '=========' in jobdata_raw[1][0]:
+            # the command was 'ketchup status queue'
+            for job in jobdata_raw:
+                this_job = JobInfo()
+                this_job.job_id = job[0]
+                this_job.title = job[1]
 
-            try:
-                this_job.job_state = _MAP_STATUS_TOMATO[job[1]]
-            except KeyError:
-                self.logger.warning(f"Unrecognized job_state '{job[1]}' for job id {this_job.job_id}")
-                this_job.job_state = JobState.UNDETERMINED
+                try:
+                    this_job.job_state = _MAP_STATUS_TOMATO[job[2]]
+                except KeyError:
+                    self.logger.warning(f"Unrecognized job_state '{job[2]}' for job id {this_job.job_id}")
+                    this_job.job_state = JobState.UNDETERMINED
 
-            if len(job) == 2:
-                this_job.pipeline = None
-            elif len(job) == 3:
-                this_job.pipeline = job[2]
-            else:
-                raise ValueError('More than 3 columns returned by ketchup status queue')
+                if len(job) == 3:
+                    this_job.pipeline = None
+                elif len(job) == 4:
+                    this_job.pipeline = job[3]
+                else:
+                    raise ValueError(f'More than 4 columns returned by ketchup status queue\n{job}')
 
-            # Everything goes here anyway for debugging purposes
-            this_job.raw_data = job
+                # Everything goes here anyway for debugging purposes
+                this_job.raw_data = job
 
-            # I append to the list of jobs to return
-            job_list.append(this_job)
+                # I append to the list of jobs to return
+                job_list.append(this_job)
+
+        elif 'jobid' == jobdata_raw[0][0] and '=' == jobdata_raw[0][1]:
+            # the command was 'ketchup status {jobid} && ...'
+            for line in jobdata_raw:
+                if line[0] == 'jobid':
+                    this_job = JobInfo()
+                    this_job.job_id = line[2]
+                elif line[0] == 'jobname':
+                    this_job.title = line[2]
+                elif line[0] == 'status':
+                    try:
+                        this_job.job_state = _MAP_STATUS_TOMATO[line[2]]
+                    except KeyError:
+                        self.logger.warning(f"Unrecognized job_state '{line[2]}' for job id {this_job.job_id}")
+                        this_job.job_state = JobState.UNDETERMINED
+                elif line[0] == 'submitted':
+                    try:
+                        this_job.submission_time = datetime.datetime.fromisoformat(f'{line[3]} {line[4]}')
+                    except ValueError:
+                        self.logger.warning(f'Error parsing submission_time for job id {this_job.job_id}')
+
+                    job_list.append(this_job)
+                else:
+                    self.logger.warning(f'Unrecognized line: {line}')
 
         return job_list
 
@@ -229,7 +250,8 @@ class TomatoScheduler(Scheduler):
 
         kill_command = f'ketchup cancel {jobid}'
 
-        _LOGGER.info(f'killing job {jobid}: {kill_command}')
+        # _LOGGER.info(f'killing job {jobid}: {kill_command}')
+        _LOGGER.warning(f'killing job {jobid}: {kill_command}')
 
         return kill_command
 
