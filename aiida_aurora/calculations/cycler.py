@@ -12,6 +12,7 @@ from aiida.orm import Dict, Str
 # from aiida.plugins import DataFactory
 from aiida_aurora.data.battery import BatterySample, BatteryState
 from aiida_aurora.data.experiment import CyclingSpecs
+from aurora.schemas import tomato_0p1
 import yaml, json
 
 
@@ -58,26 +59,26 @@ class BatteryCycler(CalcJob):
         :return: `aiida.common.datastructures.CalcInfo` instance
         """
 
+        # prepare the payload
+        # TODO: dynamic loading of the correct version (0.1 -> tomato_0p1)
+        ## Read the payload version and load the appropriate schema
+        ## from dgbowl_schemas.tomato.payload_0_1.tomato import Tomato
+        ## - should 'version: "0.1"' be written in the submit script?
+        ## - name of the file containing the sample and method
+        payload = tomato_0p1.TomatoPayload(
+            version = self._INPUT_PAYLOAD_VERSION,
+            sample = tomato_0p1.sample.convert_batterysample_to_sample(self.inputs.battery_sample.get_dict()),
+            method = tomato_0p1.method.convert_electrochemsequence_to_method_list(self.inputs.technique.get_dict()),
+            tomato = tomato_0p1.tomato.Tomato(**{
+                'verbosity': 'INFO',
+                'unlock_when_done': True,
+                'output': {
+                    'prefix': 'results'
+                }
+            }),
+        )
         with folder.open(self.options.input_filename, 'w', encoding='utf8') as handle:
-            handle.write(yaml.dump({'version': self._INPUT_PAYLOAD_VERSION}))
-            handle.write(self.inputs.battery_sample.get_yaml())
-            handle.write(self.inputs.technique.get_yaml())
-            # TODO: integrate the dgbowl Tomato schema here, maybe add these options to the input metadata.options
-            handle.write(yaml.dump({
-                'tomato': {
-                    'verbosity': 'DEBUG',
-                    'unlock_when_done': True,
-                    # "output": {
-                    #     "prefix": None,
-                    #     "path": None
-                    # }
-                }}))
-
-        # TODO: read the payload version and load the appropriate schema
-        # from dgbowl_schemas.tomato.payload_0_1.tomato import Tomato
-        # - should 'version: "0.1"' be written in the submit script?
-        # - name of the file containing the sample and method
-        # PAYLOAD v 0.1 has everything in one file... but tomato and sample/method should be divided
+            handle.write(yaml.dump(payload.dict()))
 
         codeinfo = datastructures.CodeInfo()
 
