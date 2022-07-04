@@ -8,8 +8,8 @@ import datetime
 
 from aiida.common.escaping import escape_for_bash
 from aiida.schedulers import Scheduler, SchedulerError
-from aiida.schedulers.datastructures import JobInfo, JobResource, JobState
-from aiida.common.exceptions import FeatureNotAvailable
+from aiida.schedulers.datastructures import JobInfo, JobResource, JobState, JobTemplate
+from aiida.common import exceptions
 from aiida.common.extendeddicts import AttributeDict
 from subprocess import _mswindows
 
@@ -96,7 +96,7 @@ class TomatoScheduler(Scheduler):
         """
 
         if user:
-            raise FeatureNotAvailable('Cannot query by user')
+            raise exceptions.FeatureNotAvailable('Cannot query by user')
 
         if jobs:
             if isinstance(jobs, str):
@@ -126,7 +126,28 @@ class TomatoScheduler(Scheduler):
 
         :param job_tmpl: a ``JobTemplate`` instance with relevant parameters set.
         """
-        return ''
+        import string
+        if job_tmpl.job_name:
+            # I leave only letters, numbers, dots, dashes and underscores
+            # Note: I don't compile the regexp, I am going to use it only once
+            job_title = re.sub(r'[^a-zA-Z0-9_.-]+', '', job_tmpl.job_name)
+
+            # prepend a 'j' (for 'job') before the string if the string
+            # is now empty or does not start with a valid charachter
+            if not job_title or (job_title[0] not in string.ascii_letters + string.digits):
+                job_title = f'j{job_title}'
+
+            # Truncate to the first 128 characters
+            # Nothing is done if the string is shorter.
+            job_title = job_title[:128]
+            if _mswindows:
+                header = f"$JOB_TITLE='{job_title}'"
+            else:
+                header = f"JOB_TITLE='{job_title}'"
+        else:
+            header = ''
+
+        return header
 
     def _get_submit_command(self, submit_script):
         """Return the string to execute to submit a given script.
@@ -142,10 +163,57 @@ class TomatoScheduler(Scheduler):
         shell_cmd = 'powershell' if _mswindows else 'bash'
         submit_command = f'{shell_cmd} {submit_script}'
 
-        # _LOGGER.info(f'submitting with: {submit_command}')
-        _LOGGER.warning(f'submitting with: {submit_command}')
+        _LOGGER.info(f'submitting with: {submit_command}')
 
         return submit_command
+
+    def _get_run_line(self, codes_info, codes_run_mode):
+        """Return a string with the line to execute a specific code with specific arguments.
+
+        :parameter codes_info: a list of `aiida.common.datastructures.CodeInfo` objects. Each contains the information
+            needed to run the code. I.e. `cmdline_params`, `stdin_name`, `stdout_name`, `stderr_name`, `join_files`. See
+            the documentation of `JobTemplate` and `CodeInfo`.
+        :parameter codes_run_mode: instance of `aiida.common.datastructures.CodeRunMode` contains the information on how
+            to launch the multiple codes.
+        :return: string with format: [executable] [args] {[ < stdin ]} {[ < stdout ]} {[2>&1 | 2> stderr]}
+
+        Tomato: the only customization with respect to the base-class `_get_run_line` method consists in not using
+        `escape_for_bash`, because we want to make use of environmental variables in the run line.
+        """
+        from aiida.common.datastructures import CodeRunMode
+
+        list_of_runlines = []
+
+        for code_info in codes_info:
+            command_to_exec_list = []
+            for arg in code_info.cmdline_params:
+                command_to_exec_list.append(arg)
+                # command_to_exec_list.append(escape_for_bash(arg))
+            command_to_exec = ' '.join(command_to_exec_list)
+
+            stdin_str = f'< {escape_for_bash(code_info.stdin_name)}' if code_info.stdin_name else ''
+            stdout_str = f'> {escape_for_bash(code_info.stdout_name)}' if code_info.stdout_name else ''
+
+            join_files = code_info.join_files
+            if join_files:
+                stderr_str = '2>&1'
+            else:
+                stderr_str = f'2> {escape_for_bash(code_info.stderr_name)}' if code_info.stderr_name else ''
+
+            output_string = f'{command_to_exec} {stdin_str} {stdout_str} {stderr_str}'
+
+            list_of_runlines.append(output_string)
+
+        self.logger.debug(f'_get_run_line output: {list_of_runlines}')
+
+        if codes_run_mode == CodeRunMode.PARALLEL:
+            list_of_runlines.append('wait\n')
+            return ' &\n\n'.join(list_of_runlines)
+
+        if codes_run_mode == CodeRunMode.SERIAL:
+            return '\n\n'.join(list_of_runlines)
+
+        raise NotImplementedError('Unrecognized code run mode')
 
     def _parse_joblist_output(self, retval, stdout, stderr):
         """Parse the joblist output as returned by executing the command returned by `_get_joblist_command` method.
@@ -196,8 +264,11 @@ class TomatoScheduler(Scheduler):
 
         elif 'jobid' == jobdata_raw[0][0] and '=' == jobdata_raw[0][1]:
             # the command was 'ketchup status {jobid} && ...'
+            this_job = None
             for line in jobdata_raw:
                 if line[0] == 'jobid':
+                    if this_job:
+                        job_list.append(this_job)  # append last job read
                     this_job = JobInfo()
                     this_job.job_id = line[2]
                 elif line[0] == 'jobname':
@@ -213,10 +284,25 @@ class TomatoScheduler(Scheduler):
                         this_job.submission_time = datetime.datetime.fromisoformat(f'{line[3]} {line[4]}')
                     except ValueError:
                         self.logger.warning(f'Error parsing submission_time for job id {this_job.job_id}')
-
-                    job_list.append(this_job)
+                elif line[0] == 'executed':
+                    try:
+                        this_job.dispatch_time = datetime.datetime.fromisoformat(f'{line[3]} {line[4]}')
+                    except ValueError:
+                        self.logger.warning(f'Error parsing dispatch_time for job id {this_job.job_id}')
+                elif line[0] == 'completed':
+                    pass
+                    try:
+                        this_job.finish_time = datetime.datetime.fromisoformat(f'{line[3]} {line[4]}')
+                    except ValueError:
+                        self.logger.warning(f'Error parsing finished_time for job id {this_job.job_id}')
+                elif line[1] == 'pipeline':
+                    this_job.allocated_machines = [(line[1])]
+                elif line[1] == 'PID':
+                    pass
                 else:
                     self.logger.warning(f'Unrecognized line: {line}')
+
+            job_list.append(this_job)  # append last job
 
         return job_list
 
