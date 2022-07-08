@@ -38,6 +38,7 @@ class BatteryCyclerExperiment(CalcJob):
         spec.inputs['metadata']['options']['parser_name'].default = 'aurora'
         spec.inputs['metadata']['options']['withmpi'].default = False
         spec.inputs['metadata']['options']['input_filename'].default = cls._INPUT_PAYLOAD_YAML_FILE
+        spec.inputs['metadata']['options']['submit_script_filename'].default = '_aiidasubmit.ps1'
         # spec.inputs['metadata']['options']['scheduler_stderr'].default = ''
         # spec.inputs['metadata']['options']['scheduler_stdout'].default = ''
 
