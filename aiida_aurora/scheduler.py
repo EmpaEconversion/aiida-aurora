@@ -11,7 +11,8 @@ from aiida.schedulers import Scheduler, SchedulerError
 from aiida.schedulers.datastructures import JobInfo, JobResource, JobState, JobTemplate
 from aiida.common import exceptions
 from aiida.common.extendeddicts import AttributeDict
-from subprocess import _mswindows
+#from subprocess import _mswindows
+_mswindows = True
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -89,6 +90,8 @@ class TomatoScheduler(Scheduler):
 
     _map_status = _MAP_STATUS_TOMATO
 
+    KETCHUP = '/Users/erlo/Miniconda3/envs/tomato-0.1rc11/Scripts/ketchup'
+
     def _get_joblist_command(self, jobs=None, user=None):
         """The command to report full information on existing jobs.
 
@@ -100,14 +103,14 @@ class TomatoScheduler(Scheduler):
 
         if jobs:
             if isinstance(jobs, str):
-                command = f'ketchup staus {escape_for_bash(jobs)}'
+                command = f'{self.KETCHUP} status {escape_for_bash(jobs)}'
             else:
                 try:
-                    command = ' && '.join(f'ketchup status {j}' for j in jobs)
+                    command = ' && '.join(f'{self.KETCHUP} status {j}' for j in jobs)
                 except TypeError:
                     raise TypeError("If provided, the 'jobs' variable must be a string or an iterable of strings")
         else:
-            command = 'kethup status queue'
+            command = '{self.KETCHUP} status queue'
 
         # _LOGGER.debug(f'ketchup command: {command}')
         _LOGGER.warning(f'ketchup command: {command}')
@@ -119,7 +122,7 @@ class TomatoScheduler(Scheduler):
 
         The output text is just retrieved, and returned for logging purposes.
         """
-        return f'ketchup status {escape_for_bash(job_id)}'
+        return f'{self.KETCHUP} status {escape_for_bash(job_id)}'
 
     def _get_submit_script_header(self, job_tmpl):
         """Return the submit script final part, using the parameters from the job template.
@@ -231,14 +234,15 @@ class TomatoScheduler(Scheduler):
                 f"ketchup returned exit code 0 (_parse_joblist_output function) but non-empty stderr='{stderr.strip()}'"
             )
 
-        jobdata_raw = [l.split() for l in stdout.splitlines() if l]
+        jobdata_raw = [l for l in stdout.splitlines() if l]
 
         # Create dictionary and parse specific fields
         job_list = []
 
-        if '=========' in jobdata_raw[1][0]:
+        if '=========' in jobdata_raw[1]:
             # the command was 'ketchup status queue'
-            for job in jobdata_raw:
+            for line in jobdata_raw:
+                job = line.split()
                 this_job = JobInfo()
                 this_job.job_id = job[0]
                 this_job.title = job[1]
@@ -262,42 +266,42 @@ class TomatoScheduler(Scheduler):
                 # I append to the list of jobs to return
                 job_list.append(this_job)
 
-        elif 'jobid' == jobdata_raw[0][0] and '=' == jobdata_raw[0][1]:
+        elif 'jobid =' in jobdata_raw[0]:
             # the command was 'ketchup status {jobid} && ...'
             this_job = None
-            for line in jobdata_raw:
-                if line[0] == 'jobid':
+            for raw_line in jobdata_raw:
+                line = list(map(str.strip, s.split('=')))  # split line at '='
+                if 'jobid' in line[0]:
                     if this_job:
-                        job_list.append(this_job)  # append last job read
+                        job_list.append(this_job)  # append previous job read
                     this_job = JobInfo()
-                    this_job.job_id = line[2]
-                elif line[0] == 'jobname':
-                    this_job.title = line[2]
-                elif line[0] == 'status':
+                    this_job.job_id = line[1]
+                elif 'jobname' in line[0]:
+                    this_job.title = line[1]
+                elif 'status' in line[0]:
                     try:
-                        this_job.job_state = _MAP_STATUS_TOMATO[line[2]]
+                        this_job.job_state = _MAP_STATUS_TOMATO[line[1]]
                     except KeyError:
-                        self.logger.warning(f"Unrecognized job_state '{line[2]}' for job id {this_job.job_id}")
+                        self.logger.warning(f"Unrecognized job_state '{line[1]}' for job id {this_job.job_id}")
                         this_job.job_state = JobState.UNDETERMINED
-                elif line[0] == 'submitted':
+                elif 'submitted at' in line[0]:
                     try:
-                        this_job.submission_time = datetime.datetime.fromisoformat(f'{line[3]} {line[4]}')
-                    except ValueError:
+                        this_job.submission_time = datetime.datetime.fromisoformat(line[1])
+                    except (ValueError, IndexError):
                         self.logger.warning(f'Error parsing submission_time for job id {this_job.job_id}')
-                elif line[0] == 'executed':
+                elif 'executed at' in line[0]:
                     try:
-                        this_job.dispatch_time = datetime.datetime.fromisoformat(f'{line[3]} {line[4]}')
-                    except ValueError:
+                        this_job.dispatch_time = datetime.datetime.fromisoformat(line[1])
+                    except (ValueError, IndexError):
                         self.logger.warning(f'Error parsing dispatch_time for job id {this_job.job_id}')
-                elif line[0] == 'completed':
-                    pass
+                elif 'completed at' in line[0]:
                     try:
-                        this_job.finish_time = datetime.datetime.fromisoformat(f'{line[3]} {line[4]}')
-                    except ValueError:
+                        this_job.finish_time = datetime.datetime.fromisoformat(line[1])
+                    except (ValueError, IndexError):
                         self.logger.warning(f'Error parsing finished_time for job id {this_job.job_id}')
-                elif line[1] == 'pipeline':
+                elif 'with pipeline' in line[0]:
                     this_job.allocated_machines = [(line[1])]
-                elif line[1] == 'PID':
+                elif 'with PID' in line[0]:
                     pass
                 else:
                     self.logger.warning(f'Unrecognized line: {line}')
@@ -334,7 +338,7 @@ class TomatoScheduler(Scheduler):
     def _get_kill_command(self, jobid):
         """Return the command to kill the job with specified jobid."""
 
-        kill_command = f'ketchup cancel {jobid}'
+        kill_command = f'{self.KETCHUP} cancel {jobid}'
 
         # _LOGGER.info(f'killing job {jobid}: {kill_command}')
         _LOGGER.warning(f'killing job {jobid}: {kill_command}')
