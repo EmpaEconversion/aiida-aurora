@@ -11,7 +11,7 @@ from aiida.common import exceptions
 from aiida.orm import ArrayData, SinglefileData
 import numpy as np
 import json
-import os
+import os, re
 
 BatteryCyclerExperiment = CalculationFactory('aurora.cycler')
 
@@ -72,7 +72,7 @@ class TomatoParser(Parser):
         try:
             self.logger.debug("Parsing '{}'".format(output_json_filename))
             with self.retrieved.open(output_json_filename, 'r') as handle:
-                output_results_node = self.parse_tomato_results(json.load(handle))
+                output_results_node = self.parse_tomato_results(json.load(handle), self.logger)
             self.out('results', output_results_node)
         except Exception:
             self.logger.error(f"Error parsing json file '{output_json_filename}'.")
@@ -87,7 +87,8 @@ class TomatoParser(Parser):
 
         return ExitCode(0)
 
-    def parse_tomato_results(self, data_dic):
+    @staticmethod
+    def parse_tomato_results(data_dic, logger=None):
         """
         Parse results.json file.
 
@@ -98,14 +99,24 @@ class TomatoParser(Parser):
         """
         array_dic = {}
         for imstep, mstep in enumerate(data_dic['steps']):  # method step
-            raw_qty_names = mstep['data'][0]['raw'].keys()
-            self.logger.debug(f'parse_tomato_results: step {imstep}: {list(raw_qty_names)}')
+            raw_qty_names = list(mstep['data'][0]['raw'].keys())
+            if logger:
+                logger.debug(f'parse_tomato_results: step {imstep}: {list(raw_qty_names)}')
             for raw_qty_name in raw_qty_names:
-                for identifier in ('n', 's', 'u'):
-                    array_dic[f'step{imstep}_{raw_qty_name}_{identifier}'] = np.array([
-                        step['raw'][raw_qty_name][identifier] for step in mstep['data']
+                # substitute any special character with underscores
+                raw_qty_name_cleaned = re.sub('[^0-9a-zA-Z_]', '_', raw_qty_name)
+                if isinstance(mstep['data'][0]['raw'][raw_qty_name], dict):
+                    for identifier in mstep['data'][0]['raw'][raw_qty_name].keys():
+                        array_dic[f'step{imstep}_{raw_qty_name_cleaned}_{identifier}'] = np.array([
+                            step['raw'][raw_qty_name][identifier] for step in mstep['data']
+                        ])
+                else:
+                    array_dic[f'step{imstep}_{raw_qty_name_cleaned}'] = np.array([
+                        step['raw'][raw_qty_name] for step in mstep['data']
                     ])
             array_dic[f'step{imstep}_uts'] = np.array([step['uts'] for step in mstep['data']])
+        if logger:
+            logger.debug(f'parse_tomato_results: arrays stored: {list(array_dic.keys())}')
 
         node = ArrayData()
         for key, value in array_dic.items():
