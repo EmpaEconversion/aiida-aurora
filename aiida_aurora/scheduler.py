@@ -110,7 +110,7 @@ class TomatoScheduler(Scheduler):
                 except TypeError:
                     raise TypeError("If provided, the 'jobs' variable must be a string or an iterable of strings")
         else:
-            command = '{self.KETCHUP} status queue'
+            command = f'{self.KETCHUP} status queue'
 
         # _LOGGER.debug(f'ketchup command: {command}')
         _LOGGER.warning(f'ketchup command: {command}')
@@ -241,36 +241,39 @@ class TomatoScheduler(Scheduler):
 
         if '=========' in jobdata_raw[1]:
             # the command was 'ketchup status queue'
-            for line in jobdata_raw:
-                job = line.split()
-                this_job = JobInfo()
-                this_job.job_id = job[0]
-                this_job.title = job[1]
+            if len(jobdata_raw) > 2:
+                for line in jobdata_raw[2:]:
+                    job = line.split()
+                    this_job = JobInfo()
+                    this_job.job_id = job[0]
+                    this_job.title = job[1]
 
-                try:
-                    this_job.job_state = _MAP_STATUS_TOMATO[job[2]]
-                except KeyError:
-                    self.logger.warning(f"Unrecognized job_state '{job[2]}' for job id {this_job.job_id}")
-                    this_job.job_state = JobState.UNDETERMINED
+                    try:
+                        this_job.job_state = _MAP_STATUS_TOMATO[job[2]]
+                    except KeyError:
+                        self.logger.warning(f"Unrecognized job_state '{job[2]}' for job id {this_job.job_id}")
+                        this_job.job_state = JobState.UNDETERMINED
 
-                if len(job) == 3:
-                    this_job.pipeline = None
-                elif len(job) == 4:
-                    this_job.pipeline = job[3]
-                else:
-                    raise ValueError(f'More than 4 columns returned by ketchup status queue\n{job}')
+                    if len(job) == 3:
+                        this_job.pipeline = None
+                    elif len(job) == 4:
+                        this_job.pipeline = job[3]
+                    else:
+                        raise ValueError(f'More than 4 columns returned by ketchup status queue\n{job}')
 
-                # Everything goes here anyway for debugging purposes
-                this_job.raw_data = job
+                    # Everything goes here anyway for debugging purposes
+                    this_job.raw_data = job
 
-                # I append to the list of jobs to return
-                job_list.append(this_job)
+                    # I append to the list of jobs to return
+                    job_list.append(this_job)
+            else:
+                pass  # there are no jobs in the queue
 
         elif 'jobid =' in jobdata_raw[0]:
             # the command was 'ketchup status {jobid} && ...'
             this_job = None
             for raw_line in jobdata_raw:
-                line = list(map(str.strip, s.split('=')))  # split line at '='
+                line = list(map(str.strip, raw_line.split('=')))  # split line at '='
                 if 'jobid' in line[0]:
                     if this_job:
                         job_list.append(this_job)  # append previous job read
