@@ -18,7 +18,8 @@
         "aiida.data": [
             "aurora.batterysample = aiida_aurora.data.battery:BatterySample",
             "aurora.batterystate = aiida_aurora.data.battery:BatteryState",
-            "aurora.cyclingspecs = aiida_aurora.data.experiment:CyclingSpecs"
+            "aurora.cyclingspecs = aiida_aurora.data.experiment:CyclingSpecs",
+            "aurora.tomatosettings = aiida_aurora.data.control:TomatoSettings"
         ],
         "aiida.calculations": [
             "aurora.fake = aiida_aurora.calculations.fake:BatteryFakeExperiment",
