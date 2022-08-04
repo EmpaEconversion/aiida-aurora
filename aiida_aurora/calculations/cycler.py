@@ -39,7 +39,6 @@ class BatteryCyclerExperiment(CalcJob):
         spec.inputs['metadata']['options']['parser_name'].default = 'aurora'
         spec.inputs['metadata']['options']['withmpi'].default = False
         spec.inputs['metadata']['options']['input_filename'].default = cls._INPUT_PAYLOAD_YAML_FILE
-        spec.inputs['metadata']['options']['submit_script_filename'].default = '_aiidasubmit.ps1'
         # spec.inputs['metadata']['options']['scheduler_stderr'].default = ''
         # spec.inputs['metadata']['options']['scheduler_stdout'].default = ''
 
@@ -67,6 +66,10 @@ class BatteryCyclerExperiment(CalcJob):
             needed by the calculation.
         :return: `aiida.common.datastructures.CalcInfo` instance
         """
+
+        # if connecting to a Windows PowerShell computer, change the extension of the submit script
+        if self.inputs.code.computer.transport_type == 'sshtowin':
+            self.inputs.metadata.options.submit_script_filename = '_aiidasubmit.ps1'
 
         # prepare the payload
         # TODO: use dgbowl_schemas module
