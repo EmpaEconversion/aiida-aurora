@@ -11,8 +11,6 @@ from aiida.schedulers import Scheduler, SchedulerError
 from aiida.schedulers.datastructures import JobInfo, JobResource, JobState, JobTemplate
 from aiida.common import exceptions
 from aiida.common.extendeddicts import AttributeDict
-#from subprocess import _mswindows
-_mswindows = True
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -90,6 +88,9 @@ class TomatoScheduler(Scheduler):
 
     _map_status = _MAP_STATUS_TOMATO
 
+    # the command used to submit the script
+    _shell_cmd = ''
+    # the scheduler command (TODO: remove hard-coding)
     KETCHUP = '/Users/erlo/Miniconda3/envs/tomato-0.1rc11/Scripts/ketchup'
 
     def _get_joblist_command(self, jobs=None, user=None):
@@ -128,6 +129,8 @@ class TomatoScheduler(Scheduler):
 
         :param job_tmpl: a ``JobTemplate`` instance with relevant parameters set.
         """
+        self._shell_cmd = job_tmpl.shell_type
+
         import string
         if job_tmpl.job_name:
             # I leave only letters, numbers, dots, dashes and underscores
@@ -142,7 +145,7 @@ class TomatoScheduler(Scheduler):
             # Truncate to the first 128 characters
             # Nothing is done if the string is shorter.
             job_title = job_title[:128]
-            if _mswindows:
+            if job_tmpl.shell_type == 'powershell':
                 header = f"$JOB_TITLE='{job_title}'"
             else:
                 header = f"JOB_TITLE='{job_title}'"
@@ -162,8 +165,7 @@ class TomatoScheduler(Scheduler):
         # Similarly to the 'direct' scheduler, we submit a bash script that actually executes
         # `ketchup submit {payload}`
         # the output of it is parsed *immediately* by _parse_submit_output
-        shell_cmd = 'powershell' if _mswindows else 'bash'
-        submit_command = f'{shell_cmd} {submit_script}'
+        submit_command = f'{self._shell_cmd} {submit_script}'
 
         _LOGGER.info(f'submitting with: {submit_command}')
 
