@@ -5,13 +5,13 @@ Calculations provided by aiida_aurora.
 Register calculations via the "aiida.calculations" entry point in setup.json.
 """
 from ast import Str
+from importlib import import_module
 from aiida.common import datastructures
 from aiida.engine import CalcJob
 from aiida.orm import SinglefileData, ArrayData
 from aiida_aurora.data.battery import BatterySample, BatteryState
 from aiida_aurora.data.experiment import CyclingSpecs
 from aiida_aurora.data.control import TomatoSettings
-from aurora.schemas import tomato_0p2
 import yaml, json
 
 
@@ -69,21 +69,21 @@ class BatteryCyclerExperiment(CalcJob):
         """
 
         # prepare the payload
-        # TODO: dynamic loading of the correct version (0.1 -> tomato_0p1)
-        ## Read the payload version and load the appropriate schema
+        # TODO: use dgbowl_schemas module
         ## from dgbowl_schemas.tomato.payload_0_1.tomato import Tomato
         ## - should 'version: "0.1"' be written in the submit script?
         ## - name of the file containing the sample and method
+        tomato_schema = import_module(f"aurora.schemas.tomato_{self._INPUT_PAYLOAD_VERSION.replace('.', 'p')}")
         tomato_dict = self.inputs.control_settings.get_dict()
         if tomato_dict['output']['prefix'] is None:
             tomato_dict['output']['prefix'] = self._OUTPUT_FILE_PREFIX
         else:
             self._OUTPUT_FILE_PREFIX = tomato_dict['output']['prefix']
-        payload = tomato_0p2.TomatoPayload(
+        payload = tomato_schema.TomatoPayload(
             version = self._INPUT_PAYLOAD_VERSION,
-            sample = tomato_0p2.sample.convert_batterysample_to_sample(self.inputs.battery_sample.get_dict()),
-            method = tomato_0p2.method.convert_electrochemsequence_to_method_list(self.inputs.technique.get_dict()),
-            tomato = tomato_0p2.tomato.Tomato(**tomato_dict),
+            sample = tomato_schema.sample.convert_batterysample_to_sample(self.inputs.battery_sample.get_dict()),
+            method = tomato_schema.method.convert_electrochemsequence_to_method_list(self.inputs.technique.get_dict()),
+            tomato = tomato_schema.tomato.Tomato(**tomato_dict),
         )
         with folder.open(self.options.input_filename, 'w', encoding='utf8') as handle:
             handle.write(yaml.dump(payload.dict()))

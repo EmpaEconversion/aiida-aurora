@@ -112,8 +112,7 @@ class TomatoScheduler(Scheduler):
         else:
             command = f'{self.KETCHUP} status queue'
 
-        # _LOGGER.debug(f'ketchup command: {command}')
-        _LOGGER.warning(f'ketchup command: {command}')
+        _LOGGER.debug(f'ketchup command: {command}')
         return command
 
     def _get_detailed_job_info_command(self, job_id):
@@ -343,8 +342,7 @@ class TomatoScheduler(Scheduler):
 
         kill_command = f'{self.KETCHUP} cancel {jobid}'
 
-        # _LOGGER.info(f'killing job {jobid}: {kill_command}')
-        _LOGGER.warning(f'killing job {jobid}: {kill_command}')
+        _LOGGER.info(f'killing job {jobid}: {kill_command}')
 
         return kill_command
 
