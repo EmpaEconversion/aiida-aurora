@@ -10,7 +10,8 @@ from aiida.engine import CalcJob
 from aiida.orm import SinglefileData, ArrayData
 from aiida_aurora.data.battery import BatterySample, BatteryState
 from aiida_aurora.data.experiment import CyclingSpecs
-from aurora.schemas import tomato_0p1
+from aiida_aurora.data.control import TomatoSettings
+from aurora.schemas import tomato_0p2
 import yaml, json
 
 
@@ -20,7 +21,7 @@ class BatteryCyclerExperiment(CalcJob):
     https://github.com/dgbowl/tomato
     """
     _INPUT_PAYLOAD_YAML_FILE = 'payload.yaml'
-    _INPUT_PAYLOAD_VERSION = '0.1'
+    _INPUT_PAYLOAD_VERSION = '0.2'
     _OUTPUT_FILE_PREFIX = 'results'
     # _OUTPUT_JSON_FILE = 'results.json'
     # _OUTPUT_ZIP_FILE = 'results.zip'
@@ -45,8 +46,8 @@ class BatteryCyclerExperiment(CalcJob):
         # new ports
         spec.input('metadata.options.output_filename', valid_type=str, default=cls._OUTPUT_FILE_PREFIX)
         spec.input('battery_sample', valid_type=BatterySample, help='Battery sample used.')
-        #spec.output('battery_state', valid_type=BatteryState, help='State of the battery before the experiment.')
         spec.input('technique', valid_type=CyclingSpecs, help='Experiment specifications.')
+        spec.input('control_settings', valid_type=TomatoSettings, help='Experiment control settings.')
         spec.output('results', valid_type=ArrayData, help='Results of the experiment.')
         spec.output('raw_data', valid_type=SinglefileData, help='Raw data retrieved.')
         # spec.output('battery_state', valid_type=BatteryState, help='State of the battery after the experiment.')
@@ -73,17 +74,16 @@ class BatteryCyclerExperiment(CalcJob):
         ## from dgbowl_schemas.tomato.payload_0_1.tomato import Tomato
         ## - should 'version: "0.1"' be written in the submit script?
         ## - name of the file containing the sample and method
-        payload = tomato_0p1.TomatoPayload(
+        tomato_dict = self.inputs.control_settings.get_dict()
+        if tomato_dict['output']['prefix'] is None:
+            tomato_dict['output']['prefix'] = self._OUTPUT_FILE_PREFIX
+        else:
+            self._OUTPUT_FILE_PREFIX = tomato_dict['output']['prefix']
+        payload = tomato_0p2.TomatoPayload(
             version = self._INPUT_PAYLOAD_VERSION,
-            sample = tomato_0p1.sample.convert_batterysample_to_sample(self.inputs.battery_sample.get_dict()),
-            method = tomato_0p1.method.convert_electrochemsequence_to_method_list(self.inputs.technique.get_dict()),
-            tomato = tomato_0p1.tomato.Tomato(**{
-                'verbosity': 'INFO',
-                'unlock_when_done': False,
-                'output': {
-                    'prefix': self._OUTPUT_FILE_PREFIX
-                }
-            }),
+            sample = tomato_0p2.sample.convert_batterysample_to_sample(self.inputs.battery_sample.get_dict()),
+            method = tomato_0p2.method.convert_electrochemsequence_to_method_list(self.inputs.technique.get_dict()),
+            tomato = tomato_0p2.tomato.Tomato(**tomato_dict),
         )
         with folder.open(self.options.input_filename, 'w', encoding='utf8') as handle:
             handle.write(yaml.dump(payload.dict()))
