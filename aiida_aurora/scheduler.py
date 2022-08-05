@@ -5,14 +5,13 @@ Plugin for the Tomato scheduler.
 import re
 import logging
 import datetime
+import yaml
 
 from aiida.common.escaping import escape_for_bash
 from aiida.schedulers import Scheduler, SchedulerError
 from aiida.schedulers.datastructures import JobInfo, JobResource, JobState, JobTemplate
 from aiida.common import exceptions
 from aiida.common.extendeddicts import AttributeDict
-
-_LOGGER = logging.getLogger(__name__)
 
 # There is no "job owner" in tomato.
 
@@ -77,6 +76,7 @@ class TomatoScheduler(Scheduler):
     """
     Support fot the Tomato scheduler (https://github.com/dgbowl/tomato)
     """
+    _logger = Scheduler._logger.getChild('tomato')
 
     # Query only by list of jobs and not by user
     _features = {
@@ -116,7 +116,7 @@ class TomatoScheduler(Scheduler):
         else:
             command = f'{self.KETCHUP} status queue'
 
-        _LOGGER.debug(f'ketchup command: {command}')
+        self._logger.debug(f'ketchup command: {command}')
         return command
 
     def _get_detailed_job_info_command(self, job_id):
@@ -132,7 +132,9 @@ class TomatoScheduler(Scheduler):
 
         :param job_tmpl: a ``JobTemplate`` instance with relevant parameters set.
         """
-        self._shell_cmd = job_tmpl.shell_type
+        # set the `_shell_cmd` class attribute from the job template
+        TomatoScheduler._shell_cmd = job_tmpl.shell_type
+        self._logger.debug(f'_get_submit_script_header: _shell_cmd: {self._shell_cmd}')
 
         import string
         if job_tmpl.job_name:
@@ -170,7 +172,7 @@ class TomatoScheduler(Scheduler):
         # the output of it is parsed *immediately* by _parse_submit_output
         submit_command = f'{self._shell_cmd} {submit_script}'
 
-        _LOGGER.info(f'submitting with: {submit_command}')
+        self._logger.info(f'submitting with: {submit_command}')
 
         return submit_command
 
@@ -323,11 +325,11 @@ class TomatoScheduler(Scheduler):
         :return: a string with the job ID.
         """
         if retval != 0:
-            _LOGGER.error(f'Error in _parse_submit_output: retval={retval}; stdout={stdout}; stderr={stderr}')
+            self._logger.error(f'Error in _parse_submit_output: retval={retval}; stdout={stdout}; stderr={stderr}')
             raise SchedulerError(f'Error during submission, retval={retval}; stdout={stdout}; stderr={stderr}')
 
         if stderr.strip():
-            _LOGGER.warning(f'in _parse_submit_output there was some text in stderr: {stderr}')
+            self._logger.warning(f'in _parse_submit_output there was some text in stderr: {stderr}')
 
         # I check for a valid string in the output.
         # See comments near the regexp above.
@@ -347,7 +349,7 @@ class TomatoScheduler(Scheduler):
 
         kill_command = f'{self.KETCHUP} cancel {jobid}'
 
-        _LOGGER.info(f'killing job {jobid}: {kill_command}')
+        self._logger.info(f'killing job {jobid}: {kill_command}')
 
         return kill_command
 
@@ -357,14 +359,14 @@ class TomatoScheduler(Scheduler):
         :return: True if everything seems ok, False otherwise.
         """
         if retval != 0:
-            _LOGGER.error(f'Error in _parse_kill_output: retval={retval}; stdout={stdout}; stderr={stderr}')
+            self._logger.error(f'Error in _parse_kill_output: retval={retval}; stdout={stdout}; stderr={stderr}')
             return False
 
         if stderr.strip():
-            _LOGGER.warning(f'in _parse_kill_output there was some text in stderr: {stderr}')
+            self._logger.warning(f'in _parse_kill_output there was some text in stderr: {stderr}')
 
         if stdout.strip():
-            _LOGGER.warning(f'in _parse_kill_output there was some text in stdout: {stdout}')
+            self._logger.warning(f'in _parse_kill_output there was some text in stdout: {stdout}')
 
         return True
 
