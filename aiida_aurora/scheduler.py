@@ -90,8 +90,11 @@ class TomatoScheduler(Scheduler):
 
     # the command used to submit the script
     _shell_cmd = ''
-    # the scheduler command (TODO: remove hard-coding)
-    KETCHUP = '/Users/erlo/Miniconda3/envs/tomato-0.1rc11/Scripts/ketchup'
+
+    # the scheduler command
+    # (NOTE: if applicable, you should configure the computer to load the appropriate virtual environment,
+    # in order to make this command available)
+    KETCHUP = 'ketchup'
 
     def _get_joblist_command(self, jobs=None, user=None):
         """The command to report full information on existing jobs.
