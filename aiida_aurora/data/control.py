@@ -4,8 +4,12 @@ A dummy experiment specifications class.
 """
 
 import json, yaml
-from aurora.schemas.tomato_0p2.tomato import Tomato as TomatoSchema
 from aiida.orm import Dict
+from importlib import import_module
+
+TOMATO_PAYLOAD_VERSION = '0.2'
+tomato_schema_module = import_module(f"aurora.schemas.tomato_{TOMATO_PAYLOAD_VERSION.replace('.', 'p')}")
+TomatoSchema = tomato_schema_module.tomato.Tomato
 
 
 class TomatoSettings(Dict):  # pylint: disable=too-many-ancestors
@@ -27,7 +31,6 @@ class TomatoSettings(Dict):  # pylint: disable=too-many-ancestors
 
         :param parameters_dict: dictionary with battery specifications
         :param type parameters_dict: dict
-
         """
         dict = self.validate(dict)
         super().__init__(dict=dict, **kwargs)
@@ -68,7 +71,6 @@ class TomatoSettings(Dict):  # pylint: disable=too-many-ancestors
 
             uuid: b416cbee-24e8-47a8-8c11-6d668770158b (pk: 590)
             {'ignore-case': True}
-
         """
         string = super().__str__()
         string += '\n' + str(self.get_dict())

@@ -8,7 +8,6 @@ from aiida.common import datastructures
 from aiida.engine import CalcJob
 # from aiida.orm import SinglefileData
 from aiida.orm import Dict
-from aiida.plugins import DataFactory
 from aiida_aurora.data.battery import BatterySample, BatteryState
 from aiida_aurora.data.experiment import CyclingSpecs
 

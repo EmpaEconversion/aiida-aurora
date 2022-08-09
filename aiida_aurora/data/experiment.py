@@ -27,7 +27,6 @@ class CyclingSpecs(Dict):  # pylint: disable=too-many-ancestors
 
         :param parameters_dict: dictionary with battery specifications
         :param type parameters_dict: dict
-
         """
         dict = self.validate(dict)
         super().__init__(dict=dict, **kwargs)
@@ -60,29 +59,6 @@ class CyclingSpecs(Dict):  # pylint: disable=too-many-ancestors
         # this can be customized to fit the desired format
         object_to_be_serialized = {'method': self.get_dict()}
         return yaml.dump(object_to_be_serialized)
-
-
-#    def cmdline_params(self, file1_name, file2_name):
-#        """Synthesize command line parameters.
-#
-#        e.g. [ '--ignore-case', 'filename1', 'filename2']
-#
-#        :param file_name1: Name of first file
-#        :param type file_name1: str
-#        :param file_name2: Name of second file
-#        :param type file_name2: str
-#
-#        """
-#        parameters = []
-#
-#        pm_dict = self.get_dict()
-#        for k in pm_dict.keys():
-#            if pm_dict[k]:
-#                parameters += ['--' + k]
-#
-#        parameters += [file1_name, file2_name]
-#
-#        return [str(p) for p in parameters]
 
     def __str__(self):
         """String representation of node.

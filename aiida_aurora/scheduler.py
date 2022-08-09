@@ -3,13 +3,11 @@
 Plugin for the Tomato scheduler.
 """
 import re
-import logging
 import datetime
-import yaml
 
 from aiida.common.escaping import escape_for_bash
 from aiida.schedulers import Scheduler, SchedulerError
-from aiida.schedulers.datastructures import JobInfo, JobResource, JobState, JobTemplate
+from aiida.schedulers.datastructures import JobInfo, JobResource, JobState
 from aiida.common import exceptions
 from aiida.common.extendeddicts import AttributeDict
 
@@ -74,7 +72,8 @@ class TomatoResource(JobResource):
 
 class TomatoScheduler(Scheduler):
     """
-    Support fot the Tomato scheduler (https://github.com/dgbowl/tomato)
+    Support for the Tomato scheduler (https://github.com/dgbowl/tomato)
+    Supports tomato version 0.2a1
     """
     _logger = Scheduler._logger.getChild('tomato')
 

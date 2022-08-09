@@ -5,9 +5,7 @@ Data types provided by plugin
 Register data types via the "aiida.data" entry point in setup.json.
 """
 
-# from enum import Flag
 import json, yaml
-# from voluptuous import Schema, Optional
 from aiida.orm import Dict
 from aurora.schemas.data_schemas import BatterySample as BatterySampleSchema, BatteryState as BatteryStateSchema
 
@@ -31,7 +29,6 @@ class BatterySample(Dict):  # pylint: disable=too-many-ancestors
 
         :param parameters_dict: dictionary with battery specifications
         :param type parameters_dict: dict
-
         """
         dict = self.validate(dict)
         super().__init__(dict=dict, **kwargs)
@@ -69,29 +66,6 @@ class BatterySample(Dict):  # pylint: disable=too-many-ancestors
         object_to_be_serialized = {'sample': self.get_dict()}
         return yaml.dump(object_to_be_serialized)
 
-
-#    def cmdline_params(self, file1_name, file2_name):
-#        """Synthesize command line parameters.
-#
-#        e.g. [ '--ignore-case', 'filename1', 'filename2']
-#
-#        :param file_name1: Name of first file
-#        :param type file_name1: str
-#        :param file_name2: Name of second file
-#        :param type file_name2: str
-#
-#        """
-#        parameters = []
-#
-#        pm_dict = self.get_dict()
-#        for k in pm_dict.keys():
-#            if pm_dict[k]:
-#                parameters += ['--' + k]
-#
-#        parameters += [file1_name, file2_name]
-#
-#        return [str(p) for p in parameters]
-
     def __str__(self):
         """String representation of node.
 
@@ -99,7 +73,6 @@ class BatterySample(Dict):  # pylint: disable=too-many-ancestors
 
             uuid: b416cbee-24e8-47a8-8c11-6d668770158b (pk: 590)
             {'ignore-case': True}
-
         """
         string = super().__str__()
         string += '\n' + str(self.get_dict())
@@ -114,7 +87,7 @@ class BatteryState(Dict):  # pylint: disable=too-many-ancestors
     It consists of a battery sample and a state id.
     """
 
-    # "voluptuous" schema  to add automatic validation
+    # "pydantic" schema  to add automatic validation
     schema = BatteryStateSchema
 
     # pylint: disable=redefined-builtin
@@ -126,7 +99,6 @@ class BatteryState(Dict):  # pylint: disable=too-many-ancestors
 
         :param parameters_dict: dictionary with battery specifications
         :param type parameters_dict: dict
-
         """
         dict = self.validate(dict)
         super().__init__(dict=dict, **kwargs)
@@ -151,7 +123,6 @@ class BatteryState(Dict):  # pylint: disable=too-many-ancestors
 
             uuid: b416cbee-24e8-47a8-8c11-6d668770158b (pk: 590)
             {'ignore-case': True}
-
         """
         string = super().__str__()
         string += '\n' + str(self.get_dict())
