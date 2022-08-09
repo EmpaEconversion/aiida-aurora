@@ -6,6 +6,7 @@ Register calculations via the "aiida.calculations" entry point in setup.json.
 """
 from ast import Str
 from importlib import import_module
+from re import sub
 from aiida.common import datastructures
 from aiida.engine import CalcJob
 from aiida.orm import SinglefileData, ArrayData
@@ -67,9 +68,15 @@ class BatteryCyclerExperiment(CalcJob):
         :return: `aiida.common.datastructures.CalcInfo` instance
         """
 
-        # if connecting to a Windows PowerShell computer, change the extension of the submit script
+        # if connecting to a Windows PowerShell computer, change the extension of the submit script to '.ps1'
         if self.inputs.code.computer.transport_type == 'sshtowin':
-            self.inputs.metadata.options.submit_script_filename = '_aiidasubmit.ps1'
+            submit_script_filename = self.node.get_option('submit_script_filename')
+            if not submit_script_filename.endswith('.ps1'):
+                if submit_script_filename.endswith('.sh'):
+                    submit_script_filename = submit_script_filename[:-3] + '.ps1'
+                else:
+                    submit_script_filename(submit_script_filename + '.ps1')
+                self.node.backend_entity.set_attribute('submit_script_filename', submit_script_filename)
 
         # prepare the payload
         # TODO: use dgbowl_schemas module
