@@ -12,3 +12,4 @@
 build/
 dist/
 pip-wheel-metadata/
+fake_aurora_server/exp.out
