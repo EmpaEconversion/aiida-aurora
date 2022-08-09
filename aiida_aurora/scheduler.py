@@ -1,15 +1,14 @@
-# -*- coding: utf-8 -*-
 """
 Plugin for the Tomato scheduler.
 """
-import re
 import datetime
+import re
 
+from aiida.common import exceptions
 from aiida.common.escaping import escape_for_bash
+from aiida.common.extendeddicts import AttributeDict
 from aiida.schedulers import Scheduler, SchedulerError
 from aiida.schedulers.datastructures import JobInfo, JobResource, JobState
-from aiida.common import exceptions
-from aiida.common.extendeddicts import AttributeDict
 
 # There is no "job owner" in tomato.
 
@@ -25,16 +24,16 @@ from aiida.common.extendeddicts import AttributeDict
 ## cd job has been cancelled - output data should be available as specified in the yamlfile
 
 _MAP_STATUS_TOMATO = {
-    'q': JobState.QUEUED,  # JobState.QUEUED_HELD ?
-    'qw': JobState.QUEUED,
-    'r': JobState.RUNNING,
-    'c': JobState.DONE,
-    'ce': JobState.DONE,
-    'cd': JobState.DONE,
+    "q": JobState.QUEUED,  # JobState.QUEUED_HELD ?
+    "qw": JobState.QUEUED,
+    "r": JobState.RUNNING,
+    "c": JobState.DONE,
+    "ce": JobState.DONE,
+    "cd": JobState.DONE,
 }
 
 # ketchup submit returns "jobid = {jobid}"
-_TOMATO_SUBMITTED_REGEXP = re.compile(r'(.*:\s*)?(jobid\s+=)\s+(?P<jobid>\d+)')
+_TOMATO_SUBMITTED_REGEXP = re.compile(r"(.*:\s*)?(jobid\s+=)\s+(?P<jobid>\d+)")
 
 
 class TomatoResource(JobResource):
@@ -75,11 +74,12 @@ class TomatoScheduler(Scheduler):
     Support for the Tomato scheduler (https://github.com/dgbowl/tomato)
     Supports tomato version 0.2a1
     """
-    _logger = Scheduler._logger.getChild('tomato')
+
+    _logger = Scheduler._logger.getChild("tomato")
 
     # Query only by list of jobs and not by user
     _features = {
-        'can_query_by_user': False,
+        "can_query_by_user": False,
     }
 
     # The class to be used for the job resource.
@@ -88,12 +88,12 @@ class TomatoScheduler(Scheduler):
     _map_status = _MAP_STATUS_TOMATO
 
     # the command used to submit the script
-    _shell_cmd = ''
+    _shell_cmd = ""
 
     # the scheduler command
     # (NOTE: if applicable, you should configure the computer to load the appropriate virtual environment,
     # in order to make this command available)
-    KETCHUP = 'ketchup'
+    KETCHUP = "ketchup"
 
     def _get_joblist_command(self, jobs=None, user=None):
         """The command to report full information on existing jobs.
@@ -102,20 +102,22 @@ class TomatoScheduler(Scheduler):
         """
 
         if user:
-            raise exceptions.FeatureNotAvailable('Cannot query by user')
+            raise exceptions.FeatureNotAvailable("Cannot query by user")
 
         if jobs:
             if isinstance(jobs, str):
-                command = f'{self.KETCHUP} status {escape_for_bash(jobs)}'
+                command = f"{self.KETCHUP} status {escape_for_bash(jobs)}"
             else:
                 try:
-                    command = ' && '.join(f'{self.KETCHUP} status {j}' for j in jobs)
+                    command = " && ".join(f"{self.KETCHUP} status {j}" for j in jobs)
                 except TypeError:
-                    raise TypeError("If provided, the 'jobs' variable must be a string or an iterable of strings")
+                    raise TypeError(
+                        "If provided, the 'jobs' variable must be a string or an iterable of strings"
+                    )
         else:
-            command = f'{self.KETCHUP} status queue'
+            command = f"{self.KETCHUP} status queue"
 
-        self._logger.debug(f'ketchup command: {command}')
+        self._logger.debug(f"ketchup command: {command}")
         return command
 
     def _get_detailed_job_info_command(self, job_id):
@@ -124,7 +126,7 @@ class TomatoScheduler(Scheduler):
 
         The output text is just retrieved, and returned for logging purposes.
         """
-        return f'{self.KETCHUP} status {escape_for_bash(job_id)}'
+        return f"{self.KETCHUP} status {escape_for_bash(job_id)}"
 
     def _get_submit_script_header(self, job_tmpl):
         """Return the submit script final part, using the parameters from the job template.
@@ -133,28 +135,31 @@ class TomatoScheduler(Scheduler):
         """
         # set the `_shell_cmd` class attribute from the job template
         TomatoScheduler._shell_cmd = job_tmpl.shell_type
-        self._logger.debug(f'_get_submit_script_header: _shell_cmd: {self._shell_cmd}')
+        self._logger.debug(f"_get_submit_script_header: _shell_cmd: {self._shell_cmd}")
 
         import string
+
         if job_tmpl.job_name:
             # I leave only letters, numbers, dots, dashes and underscores
             # Note: I don't compile the regexp, I am going to use it only once
-            job_title = re.sub(r'[^a-zA-Z0-9_.-]+', '', job_tmpl.job_name)
+            job_title = re.sub(r"[^a-zA-Z0-9_.-]+", "", job_tmpl.job_name)
 
             # prepend a 'j' (for 'job') before the string if the string
             # is now empty or does not start with a valid charachter
-            if not job_title or (job_title[0] not in string.ascii_letters + string.digits):
-                job_title = f'j{job_title}'
+            if not job_title or (
+                job_title[0] not in string.ascii_letters + string.digits
+            ):
+                job_title = f"j{job_title}"
 
             # Truncate to the first 128 characters
             # Nothing is done if the string is shorter.
             job_title = job_title[:128]
-            if job_tmpl.shell_type == 'powershell':
+            if job_tmpl.shell_type == "powershell":
                 header = f"$JOB_TITLE='{job_title}'"
             else:
                 header = f"JOB_TITLE='{job_title}'"
         else:
-            header = ''
+            header = ""
 
         return header
 
@@ -169,9 +174,9 @@ class TomatoScheduler(Scheduler):
         # Similarly to the 'direct' scheduler, we submit a bash script that actually executes
         # `ketchup submit {payload}`
         # the output of it is parsed *immediately* by _parse_submit_output
-        submit_command = f'{self._shell_cmd} {submit_script}'
+        submit_command = f"{self._shell_cmd} {submit_script}"
 
-        self._logger.info(f'submitting with: {submit_command}')
+        self._logger.info(f"submitting with: {submit_command}")
 
         return submit_command
 
@@ -197,31 +202,43 @@ class TomatoScheduler(Scheduler):
             for arg in code_info.cmdline_params:
                 command_to_exec_list.append(arg)
                 # command_to_exec_list.append(escape_for_bash(arg))
-            command_to_exec = ' '.join(command_to_exec_list)
+            command_to_exec = " ".join(command_to_exec_list)
 
-            stdin_str = f'< {escape_for_bash(code_info.stdin_name)}' if code_info.stdin_name else ''
-            stdout_str = f'> {escape_for_bash(code_info.stdout_name)}' if code_info.stdout_name else ''
+            stdin_str = (
+                f"< {escape_for_bash(code_info.stdin_name)}"
+                if code_info.stdin_name
+                else ""
+            )
+            stdout_str = (
+                f"> {escape_for_bash(code_info.stdout_name)}"
+                if code_info.stdout_name
+                else ""
+            )
 
             join_files = code_info.join_files
             if join_files:
-                stderr_str = '2>&1'
+                stderr_str = "2>&1"
             else:
-                stderr_str = f'2> {escape_for_bash(code_info.stderr_name)}' if code_info.stderr_name else ''
+                stderr_str = (
+                    f"2> {escape_for_bash(code_info.stderr_name)}"
+                    if code_info.stderr_name
+                    else ""
+                )
 
-            output_string = f'{command_to_exec} {stdin_str} {stdout_str} {stderr_str}'
+            output_string = f"{command_to_exec} {stdin_str} {stdout_str} {stderr_str}"
 
             list_of_runlines.append(output_string)
 
-        self.logger.debug(f'_get_run_line output: {list_of_runlines}')
+        self.logger.debug(f"_get_run_line output: {list_of_runlines}")
 
         if codes_run_mode == CodeRunMode.PARALLEL:
-            list_of_runlines.append('wait\n')
-            return ' &\n\n'.join(list_of_runlines)
+            list_of_runlines.append("wait\n")
+            return " &\n\n".join(list_of_runlines)
 
         if codes_run_mode == CodeRunMode.SERIAL:
-            return '\n\n'.join(list_of_runlines)
+            return "\n\n".join(list_of_runlines)
 
-        raise NotImplementedError('Unrecognized code run mode')
+        raise NotImplementedError("Unrecognized code run mode")
 
     def _parse_joblist_output(self, retval, stdout, stderr):
         """Parse the joblist output as returned by executing the command returned by `_get_joblist_command` method.
@@ -244,7 +261,7 @@ class TomatoScheduler(Scheduler):
         # Create dictionary and parse specific fields
         job_list = []
 
-        if '=========' in jobdata_raw[1]:
+        if "=========" in jobdata_raw[1]:
             # the command was 'ketchup status queue'
             if len(jobdata_raw) > 2:
                 for line in jobdata_raw[2:]:
@@ -256,7 +273,9 @@ class TomatoScheduler(Scheduler):
                     try:
                         this_job.job_state = _MAP_STATUS_TOMATO[job[2]]
                     except KeyError:
-                        self.logger.warning(f"Unrecognized job_state '{job[2]}' for job id {this_job.job_id}")
+                        self.logger.warning(
+                            f"Unrecognized job_state '{job[2]}' for job id {this_job.job_id}"
+                        )
                         this_job.job_state = JobState.UNDETERMINED
 
                     if len(job) == 3:
@@ -264,7 +283,9 @@ class TomatoScheduler(Scheduler):
                     elif len(job) == 4:
                         this_job.pipeline = job[3]
                     else:
-                        raise ValueError(f'More than 4 columns returned by ketchup status queue\n{job}')
+                        raise ValueError(
+                            f"More than 4 columns returned by ketchup status queue\n{job}"
+                        )
 
                     # Everything goes here anyway for debugging purposes
                     this_job.raw_data = job
@@ -274,45 +295,57 @@ class TomatoScheduler(Scheduler):
             else:
                 pass  # there are no jobs in the queue
 
-        elif 'jobid =' in jobdata_raw[0]:
+        elif "jobid =" in jobdata_raw[0]:
             # the command was 'ketchup status {jobid} && ...'
             this_job = None
             for raw_line in jobdata_raw:
-                line = list(map(str.strip, raw_line.split('=')))  # split line at '='
-                if 'jobid' in line[0]:
+                line = list(map(str.strip, raw_line.split("=")))  # split line at '='
+                if "jobid" in line[0]:
                     if this_job:
                         job_list.append(this_job)  # append previous job read
                     this_job = JobInfo()
                     this_job.job_id = line[1]
-                elif 'jobname' in line[0]:
+                elif "jobname" in line[0]:
                     this_job.title = line[1]
-                elif 'status' in line[0]:
+                elif "status" in line[0]:
                     try:
                         this_job.job_state = _MAP_STATUS_TOMATO[line[1]]
                     except KeyError:
-                        self.logger.warning(f"Unrecognized job_state '{line[1]}' for job id {this_job.job_id}")
+                        self.logger.warning(
+                            f"Unrecognized job_state '{line[1]}' for job id {this_job.job_id}"
+                        )
                         this_job.job_state = JobState.UNDETERMINED
-                elif 'submitted at' in line[0]:
+                elif "submitted at" in line[0]:
                     try:
-                        this_job.submission_time = datetime.datetime.fromisoformat(line[1])
+                        this_job.submission_time = datetime.datetime.fromisoformat(
+                            line[1]
+                        )
                     except (ValueError, IndexError):
-                        self.logger.warning(f'Error parsing submission_time for job id {this_job.job_id}')
-                elif 'executed at' in line[0]:
+                        self.logger.warning(
+                            f"Error parsing submission_time for job id {this_job.job_id}"
+                        )
+                elif "executed at" in line[0]:
                     try:
-                        this_job.dispatch_time = datetime.datetime.fromisoformat(line[1])
+                        this_job.dispatch_time = datetime.datetime.fromisoformat(
+                            line[1]
+                        )
                     except (ValueError, IndexError):
-                        self.logger.warning(f'Error parsing dispatch_time for job id {this_job.job_id}')
-                elif 'completed at' in line[0]:
+                        self.logger.warning(
+                            f"Error parsing dispatch_time for job id {this_job.job_id}"
+                        )
+                elif "completed at" in line[0]:
                     try:
                         this_job.finish_time = datetime.datetime.fromisoformat(line[1])
                     except (ValueError, IndexError):
-                        self.logger.warning(f'Error parsing finished_time for job id {this_job.job_id}')
-                elif 'with pipeline' in line[0]:
+                        self.logger.warning(
+                            f"Error parsing finished_time for job id {this_job.job_id}"
+                        )
+                elif "with pipeline" in line[0]:
                     this_job.allocated_machines = [(line[1])]
-                elif 'with PID' in line[0]:
+                elif "with PID" in line[0]:
                     pass
                 else:
-                    self.logger.warning(f'Unrecognized line: {line}')
+                    self.logger.warning(f"Unrecognized line: {line}")
 
             job_list.append(this_job)  # append last job
 
@@ -324,31 +357,39 @@ class TomatoScheduler(Scheduler):
         :return: a string with the job ID.
         """
         if retval != 0:
-            self._logger.error(f'Error in _parse_submit_output: retval={retval}; stdout={stdout}; stderr={stderr}')
-            raise SchedulerError(f'Error during submission, retval={retval}; stdout={stdout}; stderr={stderr}')
+            self._logger.error(
+                f"Error in _parse_submit_output: retval={retval}; stdout={stdout}; stderr={stderr}"
+            )
+            raise SchedulerError(
+                f"Error during submission, retval={retval}; stdout={stdout}; stderr={stderr}"
+            )
 
         if stderr.strip():
-            self._logger.warning(f'in _parse_submit_output there was some text in stderr: {stderr}')
+            self._logger.warning(
+                f"in _parse_submit_output there was some text in stderr: {stderr}"
+            )
 
         # I check for a valid string in the output.
         # See comments near the regexp above.
         # I check for the first line that matches.
-        for line in stdout.split('\n'):
+        for line in stdout.split("\n"):
             match = _TOMATO_SUBMITTED_REGEXP.match(line.strip())
             if match:
-                return match.group('jobid')
+                return match.group("jobid")
         # If I am here, no valid line could be found.
-        self.logger.error(f'in _parse_submit_output: unable to find the job id: {stdout}')
+        self.logger.error(
+            f"in _parse_submit_output: unable to find the job id: {stdout}"
+        )
         raise SchedulerError(
-            'Error during submission, could not retrieve the jobID from ketchup output; see log for more info.'
+            "Error during submission, could not retrieve the jobID from ketchup output; see log for more info."
         )
 
     def _get_kill_command(self, jobid):
         """Return the command to kill the job with specified jobid."""
 
-        kill_command = f'{self.KETCHUP} cancel {jobid}'
+        kill_command = f"{self.KETCHUP} cancel {jobid}"
 
-        self._logger.info(f'killing job {jobid}: {kill_command}')
+        self._logger.info(f"killing job {jobid}: {kill_command}")
 
         return kill_command
 
@@ -358,14 +399,20 @@ class TomatoScheduler(Scheduler):
         :return: True if everything seems ok, False otherwise.
         """
         if retval != 0:
-            self._logger.error(f'Error in _parse_kill_output: retval={retval}; stdout={stdout}; stderr={stderr}')
+            self._logger.error(
+                f"Error in _parse_kill_output: retval={retval}; stdout={stdout}; stderr={stderr}"
+            )
             return False
 
         if stderr.strip():
-            self._logger.warning(f'in _parse_kill_output there was some text in stderr: {stderr}')
+            self._logger.warning(
+                f"in _parse_kill_output there was some text in stderr: {stderr}"
+            )
 
         if stdout.strip():
-            self._logger.warning(f'in _parse_kill_output there was some text in stdout: {stdout}')
+            self._logger.warning(
+                f"in _parse_kill_output there was some text in stdout: {stdout}"
+            )
 
         return True
 

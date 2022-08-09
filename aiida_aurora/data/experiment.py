@@ -1,10 +1,12 @@
-# -*- coding: utf-8 -*-
 """
 A dummy experiment specifications class.
 """
 
-import json, yaml
+import json
+
 from aurora.schemas.cycling import ElectroChemSequence as ElectroChemSequenceSchema
+import yaml
+
 from aiida.orm import Dict
 
 
@@ -57,7 +59,7 @@ class CyclingSpecs(Dict):  # pylint: disable=too-many-ancestors
         """Get a YAML file containing the BatterySample specs."""
 
         # this can be customized to fit the desired format
-        object_to_be_serialized = {'method': self.get_dict()}
+        object_to_be_serialized = {"method": self.get_dict()}
         return yaml.dump(object_to_be_serialized)
 
     def __str__(self):
@@ -70,5 +72,5 @@ class CyclingSpecs(Dict):  # pylint: disable=too-many-ancestors
 
         """
         string = super().__str__()
-        string += '\n' + str(self.get_dict())
+        string += "\n" + str(self.get_dict())
         return string

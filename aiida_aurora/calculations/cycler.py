@@ -1,17 +1,19 @@
-# -*- coding: utf-8 -*-
 """
 Calculations provided by aiida_aurora.
 
 Register calculations via the "aiida.calculations" entry point in setup.json.
 """
 from importlib import import_module
+
+import yaml
+
 from aiida.common import datastructures
 from aiida.engine import CalcJob
-from aiida.orm import SinglefileData, ArrayData
+from aiida.orm import ArrayData, SinglefileData
+
 from aiida_aurora.data.battery import BatterySample, BatteryState
-from aiida_aurora.data.experiment import CyclingSpecs
 from aiida_aurora.data.control import TomatoSettings
-import yaml
+from aiida_aurora.data.experiment import CyclingSpecs
 
 
 class BatteryCyclerExperiment(CalcJob):
@@ -90,7 +92,8 @@ class BatteryCyclerExperiment(CalcJob):
         payload = tomato_schema_module.TomatoPayload(
             version = self._INPUT_PAYLOAD_VERSION,
             sample = tomato_schema_module.sample.convert_batterysample_to_sample(self.inputs.battery_sample.get_dict()),
-            method = tomato_schema_module.method.convert_electrochemsequence_to_method_list(self.inputs.technique.get_dict()),
+            method = tomato_schema_module.method.convert_electrochemsequence_to_method_list(
+                self.inputs.technique.get_dict()),
             tomato = TomatoSchema(**tomato_dict),
         )
         with folder.open(self.options.input_filename, 'w', encoding='utf8') as handle:

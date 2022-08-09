@@ -1,14 +1,18 @@
-# -*- coding: utf-8 -*-
 """
 A dummy experiment specifications class.
 """
 
-import json, yaml
-from aiida.orm import Dict
 from importlib import import_module
+import json
 
-TOMATO_PAYLOAD_VERSION = '0.2'
-tomato_schema_module = import_module(f"aurora.schemas.tomato_{TOMATO_PAYLOAD_VERSION.replace('.', 'p')}")
+import yaml
+
+from aiida.orm import Dict
+
+TOMATO_PAYLOAD_VERSION = "0.2"
+tomato_schema_module = import_module(
+    f"aurora.schemas.tomato_{TOMATO_PAYLOAD_VERSION.replace('.', 'p')}"
+)
 TomatoSchema = tomato_schema_module.tomato.Tomato
 
 
@@ -61,7 +65,7 @@ class TomatoSettings(Dict):  # pylint: disable=too-many-ancestors
         """Get a YAML file containing the TomatoSettings specs."""
 
         # this can be customized to fit the desired format
-        object_to_be_serialized = {'tomato': self.get_dict()}
+        object_to_be_serialized = {"tomato": self.get_dict()}
         return yaml.dump(object_to_be_serialized)
 
     def __str__(self):
@@ -73,5 +77,5 @@ class TomatoSettings(Dict):  # pylint: disable=too-many-ancestors
             {'ignore-case': True}
         """
         string = super().__str__()
-        string += '\n' + str(self.get_dict())
+        string += "\n" + str(self.get_dict())
         return string

@@ -1,16 +1,18 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """Run a test calculation on localhost.
 
 Usage: ./example_01.py
 """
 from os import path
+
 import click
+
 from aiida import cmdline, engine
-from aiida.plugins import DataFactory, CalculationFactory
+from aiida.plugins import CalculationFactory, DataFactory
+
 from aiida_aurora import helpers
 
-INPUT_DIR = path.join(path.dirname(path.realpath(__file__)), 'input_files')
+INPUT_DIR = path.join(path.dirname(path.realpath(__file__)), "input_files")
 
 
 def test_run(aurora_code):
@@ -21,34 +23,34 @@ def test_run(aurora_code):
     if not aurora_code:
         # get code
         computer = helpers.get_computer()
-        aurora_code = helpers.get_code(entry_point='aurora', computer=computer)
+        aurora_code = helpers.get_code(entry_point="aurora", computer=computer)
 
     # Prepare input parameters
-    DiffParameters = DataFactory('aurora')
-    parameters = DiffParameters({'ignore-case': True})
+    DiffParameters = DataFactory("aurora")
+    parameters = DiffParameters({"ignore-case": True})
 
-    SinglefileData = DataFactory('singlefile')
-    file1 = SinglefileData(file=path.join(INPUT_DIR, 'file1.txt'))
-    file2 = SinglefileData(file=path.join(INPUT_DIR, 'file2.txt'))
+    SinglefileData = DataFactory("singlefile")
+    file1 = SinglefileData(file=path.join(INPUT_DIR, "file1.txt"))
+    file2 = SinglefileData(file=path.join(INPUT_DIR, "file2.txt"))
 
     # set up calculation
     inputs = {
-        'code': aurora_code,
-        'parameters': parameters,
-        'file1': file1,
-        'file2': file2,
-        'metadata': {
-            'description': 'Test job submission with the aiida_aurora plugin',
+        "code": aurora_code,
+        "parameters": parameters,
+        "file1": file1,
+        "file2": file2,
+        "metadata": {
+            "description": "Test job submission with the aiida_aurora plugin",
         },
     }
 
     # Note: in order to submit your calculation to the aiida daemon, do:
     # from aiida.engine import submit
     # future = submit(CalculationFactory('aurora'), **inputs)
-    result = engine.run(CalculationFactory('aurora'), **inputs)
+    result = engine.run(CalculationFactory("aurora"), **inputs)
 
-    computed_diff = result['aurora'].get_content()
-    print('Computed diff between files: \n{}'.format(computed_diff))
+    computed_diff = result["aurora"].get_content()
+    print(f"Computed diff between files: \n{computed_diff}")
 
 
 @click.command()
@@ -66,5 +68,5 @@ def cli(code):
     test_run(code)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     cli()  # pylint: disable=no-value-for-parameter

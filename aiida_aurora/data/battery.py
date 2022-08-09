@@ -1,13 +1,16 @@
-# -*- coding: utf-8 -*-
 """
 Data types provided by plugin
 
 Register data types via the "aiida.data" entry point in setup.json.
 """
 
-import json, yaml
+import json
+
+from aurora.schemas.data_schemas import BatterySample as BatterySampleSchema
+from aurora.schemas.data_schemas import BatteryState as BatteryStateSchema
+import yaml
+
 from aiida.orm import Dict
-from aurora.schemas.data_schemas import BatterySample as BatterySampleSchema, BatteryState as BatteryStateSchema
 
 
 class BatterySample(Dict):  # pylint: disable=too-many-ancestors
@@ -33,7 +36,7 @@ class BatterySample(Dict):  # pylint: disable=too-many-ancestors
         dict = self.validate(dict)
         super().__init__(dict=dict, **kwargs)
         if not self.label:
-            self.label = self.dict['metadata'].get('name')
+            self.label = self.dict["metadata"].get("name")
 
     def validate(self, parameters_dict):  # pylint: disable=no-self-use
         """Validate command line options.
@@ -49,7 +52,9 @@ class BatterySample(Dict):  # pylint: disable=too-many-ancestors
         d = BatterySampleSchema(**parameters_dict).dict()
         # Manual fix to convert date-times to ISO string format
         # TODO integrate this into the data schema
-        d['metadata']['creation_datetime'] = d['metadata']['creation_datetime'].isoformat()
+        d["metadata"]["creation_datetime"] = d["metadata"][
+            "creation_datetime"
+        ].isoformat()
         return d
 
     def get_json(self):
@@ -63,7 +68,7 @@ class BatterySample(Dict):  # pylint: disable=too-many-ancestors
         """Get a YAML file containing the BatterySample specs."""
 
         # this can be customized to fit the desired format
-        object_to_be_serialized = {'sample': self.get_dict()}
+        object_to_be_serialized = {"sample": self.get_dict()}
         return yaml.dump(object_to_be_serialized)
 
     def __str__(self):
@@ -75,7 +80,7 @@ class BatterySample(Dict):  # pylint: disable=too-many-ancestors
             {'ignore-case': True}
         """
         string = super().__str__()
-        string += '\n' + str(self.get_dict())
+        string += "\n" + str(self.get_dict())
         return string
 
 
@@ -125,5 +130,5 @@ class BatteryState(Dict):  # pylint: disable=too-many-ancestors
             {'ignore-case': True}
         """
         string = super().__str__()
-        string += '\n' + str(self.get_dict())
+        string += "\n" + str(self.get_dict())
         return string
