@@ -11,9 +11,9 @@ from aiida.common import datastructures
 from aiida.engine import CalcJob
 from aiida.orm import ArrayData, SinglefileData
 
-from aiida_aurora.data.battery import BatterySample, BatteryState
-from aiida_aurora.data.control import TomatoSettings
-from aiida_aurora.data.experiment import CyclingSpecs
+from aiida_aurora.data.battery import BatterySampleData, BatteryStateData
+from aiida_aurora.data.control import TomatoSettingsData
+from aiida_aurora.data.experiment import CyclingSpecsData
 
 
 class BatteryCyclerExperiment(CalcJob):
@@ -28,7 +28,6 @@ class BatteryCyclerExperiment(CalcJob):
     @classmethod
     def define(cls, spec):
         """Define inputs and outputs of the calculation."""
-        # yapf: disable
         super().define(spec)
 
         # set default values for AiiDA options
@@ -43,12 +42,12 @@ class BatteryCyclerExperiment(CalcJob):
 
         # new ports
         spec.input('metadata.options.output_filename', valid_type=str, default=cls._OUTPUT_FILE_PREFIX)
-        spec.input('battery_sample', valid_type=BatterySample, help='Battery sample used.')
-        spec.input('technique', valid_type=CyclingSpecs, help='Experiment specifications.')
-        spec.input('control_settings', valid_type=TomatoSettings, help='Experiment control settings.')
+        spec.input('battery_sample', valid_type=BatterySampleData, help='Battery sample used.')
+        spec.input('technique', valid_type=CyclingSpecsData, help='Experiment specifications.')
+        spec.input('control_settings', valid_type=TomatoSettingsData, help='Experiment control settings.')
         spec.output('results', valid_type=ArrayData, help='Results of the experiment.')
         spec.output('raw_data', valid_type=SinglefileData, help='Raw data retrieved.')
-        # spec.output('battery_state', valid_type=BatteryState, help='State of the battery after the experiment.')
+        # spec.output('battery_state', valid_type=BatteryStateData, help='State of the battery after the experiment.')
 
         spec.exit_code(300, 'ERROR_MISSING_OUTPUT_FILES', message='Experiment did not produce any kind of output file.')
         spec.exit_code(301, 'ERROR_MISSING_JSON_FILE', message='Experiment did not produce an output json file.')

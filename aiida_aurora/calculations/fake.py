@@ -8,8 +8,8 @@ from aiida.engine import CalcJob
 # from aiida.orm import SinglefileData
 from aiida.orm import Dict
 
-from aiida_aurora.data.battery import BatterySample, BatteryState
-from aiida_aurora.data.experiment import CyclingSpecs
+from aiida_aurora.data.battery import BatterySampleData, BatteryStateData
+from aiida_aurora.data.experiment import CyclingSpecsData
 
 
 class BatteryFakeExperiment(CalcJob):
@@ -26,7 +26,6 @@ class BatteryFakeExperiment(CalcJob):
     @classmethod
     def define(cls, spec):
         """Define inputs and outputs of the calculation."""
-        # yapf: disable
         super().define(spec)
 
         # set default values for AiiDA options
@@ -38,10 +37,10 @@ class BatteryFakeExperiment(CalcJob):
 
         # new ports
         spec.input('metadata.options.output_filename', valid_type=str, default=cls._DEFAULT_STDOUT_FILE)
-        spec.input('battery_sample', valid_type=BatterySample, help='Battery sample used.')
-        spec.input('exp_specs', valid_type=CyclingSpecs, help='Experiment specifications.')
+        spec.input('battery_sample', valid_type=BatterySampleData, help='Battery sample used.')
+        spec.input('exp_specs', valid_type=CyclingSpecsData, help='Experiment specifications.')
         spec.output('results', valid_type=Dict, help='Results of the experiment.')  # a proper type should be defined
-        #spec.output('battery_state', valid_type=BatteryState, help='State of the battery after the experiment.')
+        #spec.output('battery_state', valid_type=BatteryStateData, help='State of the battery after the experiment.')
 
         spec.exit_code(300, 'ERROR_MISSING_OUTPUT_FILES', message='Calculation did not produce all expected output files.')
 

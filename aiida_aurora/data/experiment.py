@@ -10,7 +10,7 @@ import yaml
 from aiida.orm import Dict
 
 
-class CyclingSpecs(Dict):  # pylint: disable=too-many-ancestors
+class CyclingSpecsData(Dict):  # pylint: disable=too-many-ancestors
     """
     An experiment specification object.
 
@@ -56,7 +56,7 @@ class CyclingSpecs(Dict):  # pylint: disable=too-many-ancestors
         return json.dumps(object_to_be_serialized)
 
     def get_yaml(self):
-        """Get a YAML file containing the BatterySample specs."""
+        """Get a YAML file containing the BatterySampleData specs."""
 
         # this can be customized to fit the desired format
         object_to_be_serialized = {"method": self.get_dict()}

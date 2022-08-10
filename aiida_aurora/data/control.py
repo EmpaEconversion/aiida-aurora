@@ -16,7 +16,7 @@ tomato_schema_module = import_module(
 TomatoSchema = tomato_schema_module.tomato.Tomato
 
 
-class TomatoSettings(Dict):  # pylint: disable=too-many-ancestors
+class TomatoSettingsData(Dict):  # pylint: disable=too-many-ancestors
     """
     An experiment specification object.
 
@@ -31,7 +31,7 @@ class TomatoSettings(Dict):  # pylint: disable=too-many-ancestors
         """
         Constructor for the data class
 
-        Usage: ``TomatoSettings(dict{...})``
+        Usage: ``TomatoSettingsData(dict{...})``
 
         :param parameters_dict: dictionary with battery specifications
         :param type parameters_dict: dict
@@ -46,7 +46,7 @@ class TomatoSettings(Dict):  # pylint: disable=too-many-ancestors
 
         Uses the voluptuous package for validation. Find out about allowed keys using::
 
-            print(TomatoSettings.schema)
+            print(TomatoSettingsData.schema)
 
         :param parameters_dict: dictionary with battery specifications
         :param type parameters_dict: dict
@@ -62,7 +62,7 @@ class TomatoSettings(Dict):  # pylint: disable=too-many-ancestors
         return json.dumps(object_to_be_serialized)
 
     def get_yaml(self):
-        """Get a YAML file containing the TomatoSettings specs."""
+        """Get a YAML file containing the TomatoSettingsData specs."""
 
         # this can be customized to fit the desired format
         object_to_be_serialized = {"tomato": self.get_dict()}
