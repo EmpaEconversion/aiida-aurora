@@ -50,10 +50,10 @@ docs = [
 ]
 
 [project.entry-points."aiida.data"]
-"aurora.batterysample" = "aiida_aurora.data.battery:BatterySample"
-"aurora.batterystate" = "aiida_aurora.data.battery:BatteryState"
-"aurora.cyclingspecs" = "aiida_aurora.data.experiment:CyclingSpecs"
-"aurora.tomatosettings" = "aiida_aurora.data.control:TomatoSettings"
+"aurora.batterysample" = "aiida_aurora.data.battery:BatterySampleData"
+"aurora.batterystate" = "aiida_aurora.data.battery:BatteryStateData"
+"aurora.cyclingspecs" = "aiida_aurora.data.experiment:CyclingSpecsData"
+"aurora.tomatosettings" = "aiida_aurora.data.control:TomatoSettingsData"
 
 [project.entry-points."aiida.calculations"]
 "aurora.fake" = "aiida_aurora.calculations.fake:BatteryFakeExperiment"
