@@ -1,19 +1,15 @@
 """
 A dummy experiment specifications class.
 """
-
-from importlib import import_module
 import json
 
+from aurora.schemas.dgbowl_schemas import conversion_map
 import yaml
 
 from aiida.orm import Dict
 
 TOMATO_PAYLOAD_VERSION = "0.2"
-tomato_schema_module = import_module(
-    f"aurora.schemas.tomato_{TOMATO_PAYLOAD_VERSION.replace('.', 'p')}"
-)
-TomatoSchema = tomato_schema_module.tomato.Tomato
+TomatoSchema = conversion_map[TOMATO_PAYLOAD_VERSION]["tomato"]
 
 
 class TomatoSettingsData(Dict):  # pylint: disable=too-many-ancestors

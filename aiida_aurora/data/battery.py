@@ -6,8 +6,8 @@ Register data types via the "aiida.data" entry point in setup.json.
 
 import json
 
-from aurora.schemas.data_schemas import BatterySample as BatterySampleSchema
-from aurora.schemas.data_schemas import BatteryState as BatteryStateSchema
+from aurora.schemas.battery import BatterySample as BatterySampleSchema
+from aurora.schemas.battery import BatteryState as BatteryStateSchema
 import yaml
 
 from aiida.orm import Dict

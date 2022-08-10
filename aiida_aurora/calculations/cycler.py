@@ -3,8 +3,7 @@ Calculations provided by aiida_aurora.
 
 Register calculations via the "aiida.calculations" entry point in setup.json.
 """
-from importlib import import_module
-
+from aurora.schemas.dgbowl_schemas import conversion_map, payload_models
 import yaml
 
 from aiida.common import datastructures
@@ -115,29 +114,23 @@ class BatteryCyclerExperiment(CalcJob):
                 )
 
         # prepare the payload
-        # TODO: use dgbowl_schemas module
-        ## from dgbowl_schemas.tomato.payload_0_1.tomato import Tomato
-        ## - should 'version: "0.1"' be written in the submit script?
-        ## - name of the file containing the sample and method
-        tomato_schema_module = import_module(
-            f"aurora.schemas.tomato_{self._INPUT_PAYLOAD_VERSION.replace('.', 'p')}"
-        )
-        TomatoSchema = tomato_schema_module.tomato.Tomato
+        TomatoPayload = payload_models[self._INPUT_PAYLOAD_VERSION]
 
         tomato_dict = self.inputs.control_settings.get_dict()
         if tomato_dict["output"]["prefix"] is None:
             tomato_dict["output"]["prefix"] = self._OUTPUT_FILE_PREFIX
         else:
             self._OUTPUT_FILE_PREFIX = tomato_dict["output"]["prefix"]
-        payload = tomato_schema_module.TomatoPayload(
+
+        payload = TomatoPayload(
             version=self._INPUT_PAYLOAD_VERSION,
-            sample=tomato_schema_module.sample.convert_batterysample_to_sample(
+            sample=conversion_map[self._INPUT_PAYLOAD_VERSION]["sample"](
                 self.inputs.battery_sample.get_dict()
             ),
-            method=tomato_schema_module.method.convert_electrochemsequence_to_method_list(
+            method=conversion_map[self._INPUT_PAYLOAD_VERSION]["method"](
                 self.inputs.technique.get_dict()
             ),
-            tomato=TomatoSchema(**tomato_dict),
+            tomato=conversion_map[self._INPUT_PAYLOAD_VERSION]["tomato"](**tomato_dict),
         )
         with folder.open(self.options.input_filename, "w", encoding="utf8") as handle:
             handle.write(yaml.dump(payload.dict()))
