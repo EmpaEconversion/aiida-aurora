@@ -4,6 +4,8 @@ Plugin for the Tomato scheduler.
 import datetime
 import re
 
+import yaml
+
 from aiida.common import exceptions
 from aiida.common.escaping import escape_for_bash
 from aiida.common.extendeddicts import AttributeDict
@@ -31,9 +33,6 @@ _MAP_STATUS_TOMATO = {
     "ce": JobState.DONE,
     "cd": JobState.DONE,
 }
-
-# ketchup submit returns "jobid = {jobid}"
-_TOMATO_SUBMITTED_REGEXP = re.compile(r"(.*:\s*)?(jobid\s+=)\s+(?P<jobid>\d+)")
 
 
 class TomatoResource(JobResource):
@@ -109,13 +108,13 @@ class TomatoScheduler(Scheduler):
                 command = f"{self.KETCHUP} status {escape_for_bash(jobs)}"
             else:
                 try:
-                    command = " && ".join(f"{self.KETCHUP} status {j}" for j in jobs)
+                    command = " ".join(f"{self.KETCHUP} status {j}" for j in jobs)
                 except TypeError:
                     raise TypeError(
                         "If provided, the 'jobs' variable must be a string or an iterable of strings"
                     )
         else:
-            command = f"{self.KETCHUP} status queue"
+            command = f"{self.KETCHUP} status queue -v"
 
         self._logger.debug(f"ketchup command: {command}")
         return command
@@ -256,13 +255,25 @@ class TomatoScheduler(Scheduler):
                 f"ketchup returned exit code 0 (_parse_joblist_output function) but non-empty stderr='{stderr.strip()}'"
             )
 
-        jobdata_raw = [l for l in stdout.splitlines() if l]
+        # remove all empty lines and lines containing 'ERROR'
+        jobdata_raw = "\n".join(
+            l for l in stdout.splitlines() if l and "ERROR" not in l
+        )
+
+        def convert_datetime(dt):
+            if isinstance(dt, datetime.datetime):
+                return dt
+            try:
+                return datetime.datetime.fromisoformat(dt)
+            except:
+                return None
 
         # Create dictionary and parse specific fields
         job_list = []
 
-        if "=========" in jobdata_raw[1]:
+        if "===========================" in jobdata_raw:
             # the command was 'ketchup status queue'
+            jobdata_raw = jobdata_raw.splitlines()
             if len(jobdata_raw) > 2:
                 for line in jobdata_raw[2:]:
                     job = line.split()
@@ -295,59 +306,34 @@ class TomatoScheduler(Scheduler):
             else:
                 pass  # there are no jobs in the queue
 
-        elif "jobid =" in jobdata_raw[0]:
-            # the command was 'ketchup status {jobid} && ...'
-            this_job = None
-            for raw_line in jobdata_raw:
-                line = list(map(str.strip, raw_line.split("=")))  # split line at '='
-                if "jobid" in line[0]:
-                    if this_job:
-                        job_list.append(this_job)  # append previous job read
-                    this_job = JobInfo()
-                    this_job.job_id = line[1]
-                elif "jobname" in line[0]:
-                    this_job.title = line[1]
-                elif "status" in line[0]:
-                    try:
-                        this_job.job_state = _MAP_STATUS_TOMATO[line[1]]
-                    except KeyError:
-                        self.logger.warning(
-                            f"Unrecognized job_state '{line[1]}' for job id {this_job.job_id}"
-                        )
-                        this_job.job_state = JobState.UNDETERMINED
-                elif "submitted at" in line[0]:
-                    try:
-                        this_job.submission_time = datetime.datetime.fromisoformat(
-                            line[1]
-                        )
-                    except (ValueError, IndexError):
-                        self.logger.warning(
-                            f"Error parsing submission_time for job id {this_job.job_id}"
-                        )
-                elif "executed at" in line[0]:
-                    try:
-                        this_job.dispatch_time = datetime.datetime.fromisoformat(
-                            line[1]
-                        )
-                    except (ValueError, IndexError):
-                        self.logger.warning(
-                            f"Error parsing dispatch_time for job id {this_job.job_id}"
-                        )
-                elif "completed at" in line[0]:
-                    try:
-                        this_job.finish_time = datetime.datetime.fromisoformat(line[1])
-                    except (ValueError, IndexError):
-                        self.logger.warning(
-                            f"Error parsing finished_time for job id {this_job.job_id}"
-                        )
-                elif "with pipeline" in line[0]:
-                    this_job.allocated_machines = [(line[1])]
-                elif "with PID" in line[0]:
-                    pass
-                else:
-                    self.logger.warning(f"Unrecognized line: {line}")
+        else:
+            # the command was 'ketchup status {jobid} ...'
+            # the output is yaml-formatted
+            jobdata_parsed = yaml.full_load(jobdata_raw)
 
-            job_list.append(this_job)  # append last job
+            for this_job_dict in jobdata_parsed:
+                this_job = JobInfo()
+                this_job.job_id = str(this_job_dict["jobid"])
+                this_job.title = this_job_dict["jobname"]
+                try:
+                    this_job_status = this_job_dict["status"]
+                    this_job.job_state = _MAP_STATUS_TOMATO[this_job_status]
+                except KeyError:
+                    self.logger.warning(
+                        f"Unrecognized job_state '{this_job_status}' for job id {this_job.job_id}"
+                    )
+                    this_job.job_state = JobState.UNDETERMINED
+
+                # yaml parses iso-format datetime strings automatically:
+                this_job.submission_time = convert_datetime(
+                    this_job_dict.get("submitted")
+                )
+                this_job.dispatch_time = convert_datetime(this_job_dict.get("executed"))
+                this_job.finish_time = convert_datetime(this_job_dict.get("completed"))
+                this_job.allocated_machines = this_job_dict.get("pipeline")
+                # ignored: this_job_dict.get("pid")
+
+                job_list.append(this_job)  # append last job
 
         return job_list
 
@@ -369,14 +355,13 @@ class TomatoScheduler(Scheduler):
                 f"in _parse_submit_output there was some text in stderr: {stderr}"
             )
 
-        # I check for a valid string in the output.
-        # See comments near the regexp above.
-        # I check for the first line that matches.
-        for line in stdout.split("\n"):
-            match = _TOMATO_SUBMITTED_REGEXP.match(line.strip())
-            if match:
-                return match.group("jobid")
-        # If I am here, no valid line could be found.
+        # I check for the jobid in the output
+        stdout_dict = yaml.full_load(stdout)
+        if "jobid" in stdout_dict:
+            self._logger.debug(f"The submitted jobid is {stdout_dict['jobid']}")
+            return stdout_dict["jobid"]
+
+        # If I am here, no jobid was found
         self.logger.error(
             f"in _parse_submit_output: unable to find the job id: {stdout}"
         )
