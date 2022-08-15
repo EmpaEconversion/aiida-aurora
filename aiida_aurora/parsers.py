@@ -50,9 +50,7 @@ class TomatoParser(Parser):
         """
         retrieved_temporary_folder = kwargs["retrieved_temporary_folder"]
         output_json_filename = self.node.get_option("output_filename") + ".json"
-        output_zip_filename = os.path.join(
-            retrieved_temporary_folder, self.node.get_option("output_filename") + ".zip"
-        )
+        output_zip_filename = os.path.join(retrieved_temporary_folder, self.node.get_option("output_filename") + ".zip")
 
         files_retrieved = self.retrieved.list_object_names()
 
@@ -64,21 +62,15 @@ class TomatoParser(Parser):
                 self.out("raw_data", output_raw_data_node)
                 output_raw_data_node_created = True
             except Exception:
-                self.logger.warning(
-                    f"The raw data zip file '{output_zip_filename}' could not be read."
-                )
+                self.logger.warning(f"The raw data zip file '{output_zip_filename}' could not be read.")
                 output_raw_data_node_created = False
         else:
-            self.logger.warning(
-                f"The raw data zip file '{output_zip_filename}' is missing."
-            )
+            self.logger.warning(f"The raw data zip file '{output_zip_filename}' is missing.")
             output_raw_data_node_created = False
 
         # Check that json file is present
         if not output_json_filename in files_retrieved:
-            self.logger.error(
-                f"The output json file '{output_json_filename}' is missing."
-            )
+            self.logger.error(f"The output json file '{output_json_filename}' is missing.")
             if output_raw_data_node_created:
                 # only json file is missing
                 return self.exit_codes.ERROR_OUTPUT_JSON_MISSING
@@ -89,9 +81,7 @@ class TomatoParser(Parser):
         try:
             self.logger.debug(f"Parsing '{output_json_filename}'")
             with self.retrieved.open(output_json_filename, "r") as handle:
-                output_results_node = self.parse_tomato_results(
-                    json.load(handle), self.logger
-                )
+                output_results_node = self.parse_tomato_results(json.load(handle), self.logger)
             self.out("results", output_results_node)
         except OSError:
             self.logger.error(f"Error opening the json file '{output_json_filename}'.")
@@ -128,33 +118,22 @@ class TomatoParser(Parser):
         for imstep, mstep in enumerate(data_dic["steps"]):  # method step
             raw_qty_names = list(mstep["data"][0]["raw"].keys())
             if logger:
-                logger.debug(
-                    f"parse_tomato_results: step {imstep}: {list(raw_qty_names)}"
-                )
+                logger.debug(f"parse_tomato_results: step {imstep}: {list(raw_qty_names)}")
             for raw_qty_name in raw_qty_names:
                 # substitute any special character with underscores
                 raw_qty_name_cleaned = re.sub("[^0-9a-zA-Z_]", "_", raw_qty_name)
                 if isinstance(mstep["data"][0]["raw"][raw_qty_name], dict):
                     for identifier in mstep["data"][0]["raw"][raw_qty_name].keys():
-                        array_dic[
-                            f"step{imstep}_{raw_qty_name_cleaned}_{identifier}"
-                        ] = np.array(
-                            [
-                                step["raw"][raw_qty_name][identifier]
-                                for step in mstep["data"]
-                            ]
-                        )
+                        array_dic[f"step{imstep}_{raw_qty_name_cleaned}_{identifier}"] = np.array([
+                            step["raw"][raw_qty_name][identifier] for step in mstep["data"]
+                        ])
                 else:
-                    array_dic[f"step{imstep}_{raw_qty_name_cleaned}"] = np.array(
-                        [step["raw"][raw_qty_name] for step in mstep["data"]]
-                    )
-            array_dic[f"step{imstep}_uts"] = np.array(
-                [step["uts"] for step in mstep["data"]]
-            )
+                    array_dic[f"step{imstep}_{raw_qty_name_cleaned}"] = np.array([
+                        step["raw"][raw_qty_name] for step in mstep["data"]
+                    ])
+            array_dic[f"step{imstep}_uts"] = np.array([step["uts"] for step in mstep["data"]])
         if logger:
-            logger.debug(
-                f"parse_tomato_results: arrays stored: {list(array_dic.keys())}"
-            )
+            logger.debug(f"parse_tomato_results: arrays stored: {list(array_dic.keys())}")
 
         node = ArrayData()
         for key, value in array_dic.items():

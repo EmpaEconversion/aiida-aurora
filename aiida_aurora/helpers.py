@@ -83,9 +83,7 @@ def get_code(entry_point, computer):
             f"Entry point '{entry_point}' not recognized. Allowed values: {list(executables.keys())}"
         ) from exc
 
-    codes = Code.objects.find(
-        filters={"label": executable}
-    )  # pylint: disable=no-member
+    codes = Code.objects.find(filters={"label": executable})  # pylint: disable=no-member
     if codes:
         return codes[0]
 

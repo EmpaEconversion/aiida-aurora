@@ -1,7 +1,5 @@
 """
-Calculations provided by aiida_aurora.
-
-Register calculations via the "aiida.calculations" entry point in setup.json.
+Battery cycling experiment CalcJobs.
 """
 from typing import Optional
 
@@ -39,9 +37,7 @@ class BatteryCyclerExperiment(CalcJob):
         }
         spec.inputs["metadata"]["options"]["parser_name"].default = "aurora"
         spec.inputs["metadata"]["options"]["withmpi"].default = False
-        spec.inputs["metadata"]["options"][
-            "input_filename"
-        ].default = cls._INPUT_PAYLOAD_YAML_FILE
+        spec.inputs["metadata"]["options"]["input_filename"].default = cls._INPUT_PAYLOAD_YAML_FILE
         # spec.inputs['metadata']['options']['scheduler_stderr'].default = ''
         # spec.inputs['metadata']['options']['scheduler_stdout'].default = ''
 
@@ -51,58 +47,40 @@ class BatteryCyclerExperiment(CalcJob):
             valid_type=str,
             default=cls._OUTPUT_FILE_PREFIX,
         )
-        spec.input(
-            "battery_sample", valid_type=BatterySampleData, help="Battery sample used."
-        )
-        spec.input(
-            "technique", valid_type=CyclingSpecsData, help="Experiment specifications."
-        )
-        spec.input(
-            "control_settings",
-            valid_type=TomatoSettingsData,
-            help="Experiment control settings.",
-        )
+        spec.input("battery_sample", valid_type=BatterySampleData, help="Battery sample used.")
+        spec.input("technique", valid_type=CyclingSpecsData, help="Experiment specifications.")
+        spec.input("control_settings", valid_type=TomatoSettingsData, help="Experiment control settings.")
         spec.output("results", valid_type=ArrayData, help="Results of the experiment.")
         spec.output("raw_data", valid_type=SinglefileData, help="Raw data retrieved.")
         # spec.output('battery_state', valid_type=BatteryStateData, help='State of the battery after the experiment.')
 
         # Unrecoverable errors: required retrieved files could not be read, parsed or are otherwise incomplete
+        spec.exit_code(300, "ERROR_OUTPUT_FILES_MISSING", message="Experiment did not produce any kind of output file.")
+        spec.exit_code(301, "ERROR_OUTPUT_JSON_MISSING", message="Experiment did not produce an output JSON file.")
         spec.exit_code(
-            300,
-            "ERROR_OUTPUT_FILES_MISSING",
-            message="Experiment did not produce any kind of output file.",
-        )
-        spec.exit_code(
-            301,
-            "ERROR_OUTPUT_JSON_MISSING",
-            message="Experiment did not produce an output JSON file.",
-        )
-        spec.exit_code(
-            311,
-            "ERROR_OUTPUT_JSON_READ",
-            message="The output JSON file could not be read. Raw data may be available.",
+            311, "ERROR_OUTPUT_JSON_READ", message="The output JSON file could not be read. Raw data may be available."
         )
         spec.exit_code(
             312,
             "ERROR_OUTPUT_JSON_PARSE",
-            message="The output JSON file could not be parsed. Raw data may be available.",
+            message="The output JSON file could not be parsed. Raw data may be available."
         )
 
         # Warnings: JSON file with data was retrieved, but something went different than expected
         spec.exit_code(
             302,
             "WARNING_OUTPUT_ZIP_MISSING",
-            message="Experiment did not produce a ZIP file with raw data, but the JSON file was parsed.",
+            message="Experiment did not produce a ZIP file with raw data, but the JSON file was parsed."
         )
         spec.exit_code(
             501,
             "WARNING_COMPLETED_ERROR",
-            message="The tomato job was marked as completed with an error, but some files were retrieved.",
+            message="The tomato job was marked as completed with an error, but some files were retrieved."
         )
         spec.exit_code(
             502,
             "WARNING_COMPLETED_CANCELLED",
-            message="The tomato job was marked as cancelled, but some files were retrieved.",
+            message="The tomato job was marked as cancelled, but some files were retrieved."
         )
 
     def prepare_for_submission(self, folder):
@@ -122,9 +100,7 @@ class BatteryCyclerExperiment(CalcJob):
                     submit_script_filename = submit_script_filename[:-3] + ".ps1"
                 else:
                     submit_script_filename(submit_script_filename + ".ps1")
-                self.node.backend_entity.set_attribute(
-                    "submit_script_filename", submit_script_filename
-                )
+                self.node.backend_entity.set_attribute("submit_script_filename", submit_script_filename)
 
         # prepare the payload
         TomatoPayload = payload_models[self._INPUT_PAYLOAD_VERSION]
@@ -137,12 +113,8 @@ class BatteryCyclerExperiment(CalcJob):
 
         payload = TomatoPayload(
             version=self._INPUT_PAYLOAD_VERSION,
-            sample=conversion_map[self._INPUT_PAYLOAD_VERSION]["sample"](
-                self.inputs.battery_sample.get_dict()
-            ),
-            method=conversion_map[self._INPUT_PAYLOAD_VERSION]["method"](
-                self.inputs.technique.get_dict()
-            ),
+            sample=conversion_map[self._INPUT_PAYLOAD_VERSION]["sample"](self.inputs.battery_sample.get_dict()),
+            method=conversion_map[self._INPUT_PAYLOAD_VERSION]["method"](self.inputs.technique.get_dict()),
             tomato=conversion_map[self._INPUT_PAYLOAD_VERSION]["tomato"](**tomato_dict),
         )
         with folder.open(self.options.input_filename, "w", encoding="utf8") as handle:

@@ -2,6 +2,7 @@
 Plugin for the Tomato scheduler.
 """
 import datetime
+from msilib.schema import Error
 import re
 
 import yaml
@@ -118,10 +119,10 @@ class TomatoScheduler(Scheduler):
             else:
                 try:
                     command = " ".join(f"{self.KETCHUP} status {j}" for j in jobs)
-                except TypeError:
+                except TypeError as e:
                     raise TypeError(
                         "If provided, the 'jobs' variable must be a string or an iterable of strings"
-                    )
+                    ) from e
         else:
             command = f"{self.KETCHUP} status queue -v"
 
@@ -154,9 +155,7 @@ class TomatoScheduler(Scheduler):
 
             # prepend a 'j' (for 'job') before the string if the string
             # is now empty or does not start with a valid charachter
-            if not job_title or (
-                job_title[0] not in string.ascii_letters + string.digits
-            ):
+            if not job_title or (job_title[0] not in string.ascii_letters + string.digits):
                 job_title = f"j{job_title}"
 
             # Truncate to the first 128 characters
@@ -212,26 +211,14 @@ class TomatoScheduler(Scheduler):
                 # command_to_exec_list.append(escape_for_bash(arg))
             command_to_exec = " ".join(command_to_exec_list)
 
-            stdin_str = (
-                f"< {escape_for_bash(code_info.stdin_name)}"
-                if code_info.stdin_name
-                else ""
-            )
-            stdout_str = (
-                f"> {escape_for_bash(code_info.stdout_name)}"
-                if code_info.stdout_name
-                else ""
-            )
+            stdin_str = (f"< {escape_for_bash(code_info.stdin_name)}" if code_info.stdin_name else "")
+            stdout_str = (f"> {escape_for_bash(code_info.stdout_name)}" if code_info.stdout_name else "")
 
             join_files = code_info.join_files
             if join_files:
                 stderr_str = "2>&1"
             else:
-                stderr_str = (
-                    f"2> {escape_for_bash(code_info.stderr_name)}"
-                    if code_info.stderr_name
-                    else ""
-                )
+                stderr_str = (f"2> {escape_for_bash(code_info.stderr_name)}" if code_info.stderr_name else "")
 
             output_string = f"{command_to_exec} {stdin_str} {stdout_str} {stderr_str}"
 
@@ -265,16 +252,14 @@ class TomatoScheduler(Scheduler):
             )
 
         # remove all empty lines and lines containing 'ERROR'
-        jobdata_raw = "\n".join(
-            l for l in stdout.splitlines() if l and "ERROR" not in l
-        )
+        jobdata_raw = "\n".join(l for l in stdout.splitlines() if l and "ERROR" not in l)
 
         def convert_datetime(dt):
             if isinstance(dt, datetime.datetime):
                 return dt
             try:
                 return datetime.datetime.fromisoformat(dt)
-            except:
+            except Exception:
                 return None
 
         # Create dictionary and parse specific fields
@@ -294,9 +279,7 @@ class TomatoScheduler(Scheduler):
                         this_job.job_state = _MAP_STATUS_TOMATO[job[2]]
                         this_job.annotation = _MAP_ANNOTATION_TOMATO[job[2]]
                     except KeyError:
-                        self.logger.warning(
-                            f"Unrecognized job_state '{job[2]}' for job id {this_job.job_id}"
-                        )
+                        self.logger.warning(f"Unrecognized job_state '{job[2]}' for job id {this_job.job_id}")
                         this_job.job_state = JobState.UNDETERMINED
 
                     if len(job) == 3:
@@ -304,9 +287,7 @@ class TomatoScheduler(Scheduler):
                     elif len(job) == 4:
                         this_job.pipeline = job[3]
                     else:
-                        raise ValueError(
-                            f"More than 4 columns returned by ketchup status queue\n{job}"
-                        )
+                        raise ValueError(f"More than 4 columns returned by ketchup status queue\n{job}")
 
                     # Everything goes here anyway for debugging purposes
                     this_job.raw_data = job
@@ -330,15 +311,11 @@ class TomatoScheduler(Scheduler):
                     this_job.job_state = _MAP_STATUS_TOMATO[this_job_status]
                     this_job.annotation = _MAP_ANNOTATION_TOMATO[this_job_status]
                 except KeyError:
-                    self.logger.warning(
-                        f"Unrecognized job_state '{this_job_status}' for job id {this_job.job_id}"
-                    )
+                    self.logger.warning(f"Unrecognized job_state '{this_job_status}' for job id {this_job.job_id}")
                     this_job.job_state = JobState.UNDETERMINED
 
                 # yaml parses iso-format datetime strings automatically:
-                this_job.submission_time = convert_datetime(
-                    this_job_dict.get("submitted")
-                )
+                this_job.submission_time = convert_datetime(this_job_dict.get("submitted"))
                 this_job.dispatch_time = convert_datetime(this_job_dict.get("executed"))
                 this_job.finish_time = convert_datetime(this_job_dict.get("completed"))
                 this_job.allocated_machines = this_job_dict.get("pipeline")
@@ -354,17 +331,11 @@ class TomatoScheduler(Scheduler):
         :return: a string with the job ID.
         """
         if retval != 0:
-            self._logger.error(
-                f"Error in _parse_submit_output: retval={retval}; stdout={stdout}; stderr={stderr}"
-            )
-            raise SchedulerError(
-                f"Error during submission, retval={retval}; stdout={stdout}; stderr={stderr}"
-            )
+            self._logger.error(f"Error in _parse_submit_output: retval={retval}; stdout={stdout}; stderr={stderr}")
+            raise SchedulerError(f"Error during submission, retval={retval}; stdout={stdout}; stderr={stderr}")
 
         if stderr.strip():
-            self._logger.warning(
-                f"in _parse_submit_output there was some text in stderr: {stderr}"
-            )
+            self._logger.warning(f"in _parse_submit_output there was some text in stderr: {stderr}")
 
         # I check for the jobid in the output
         stdout_dict = yaml.full_load(stdout)
@@ -373,9 +344,7 @@ class TomatoScheduler(Scheduler):
             return stdout_dict["jobid"]
 
         # If I am here, no jobid was found
-        self.logger.error(
-            f"in _parse_submit_output: unable to find the job id: {stdout}"
-        )
+        self.logger.error(f"in _parse_submit_output: unable to find the job id: {stdout}")
         raise SchedulerError(
             "Error during submission, could not retrieve the jobID from ketchup output; see log for more info."
         )
@@ -395,20 +364,14 @@ class TomatoScheduler(Scheduler):
         :return: True if everything seems ok, False otherwise.
         """
         if retval != 0:
-            self._logger.error(
-                f"Error in _parse_kill_output: retval={retval}; stdout={stdout}; stderr={stderr}"
-            )
+            self._logger.error(f"Error in _parse_kill_output: retval={retval}; stdout={stdout}; stderr={stderr}")
             return False
 
         if stderr.strip():
-            self._logger.warning(
-                f"in _parse_kill_output there was some text in stderr: {stderr}"
-            )
+            self._logger.warning(f"in _parse_kill_output there was some text in stderr: {stderr}")
 
         if stdout.strip():
-            self._logger.warning(
-                f"in _parse_kill_output there was some text in stdout: {stdout}"
-            )
+            self._logger.warning(f"in _parse_kill_output there was some text in stdout: {stdout}")
 
         return True
 

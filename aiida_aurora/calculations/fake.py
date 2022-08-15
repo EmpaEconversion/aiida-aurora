@@ -1,11 +1,8 @@
 """
-Calculations provided by aiida_aurora.
-
-Register calculations via the "aiida.calculations" entry point in setup.json.
+Dummy CalcJobs to simulate a battery experiment.
 """
 from aiida.common import datastructures
 from aiida.engine import CalcJob
-
 # from aiida.orm import SinglefileData
 from aiida.orm import Dict
 
@@ -43,21 +40,13 @@ class BatteryFakeExperiment(CalcJob):
             valid_type=str,
             default=cls._DEFAULT_STDOUT_FILE,
         )
-        spec.input(
-            "battery_sample", valid_type=BatterySampleData, help="Battery sample used."
-        )
-        spec.input(
-            "exp_specs", valid_type=CyclingSpecsData, help="Experiment specifications."
-        )
-        spec.output(
-            "results", valid_type=Dict, help="Results of the experiment."
-        )  # a proper type should be defined
+        spec.input("battery_sample", valid_type=BatterySampleData, help="Battery sample used.")
+        spec.input("exp_specs", valid_type=CyclingSpecsData, help="Experiment specifications.")
+        spec.output("results", valid_type=Dict, help="Results of the experiment.")  # a proper type should be defined
         # spec.output('battery_state', valid_type=BatteryStateData, help='State of the battery after the experiment.')
 
         spec.exit_code(
-            300,
-            "ERROR_MISSING_OUTPUT_FILES",
-            message="Calculation did not produce all expected output files.",
+            300, "ERROR_MISSING_OUTPUT_FILES", message="Calculation did not produce all expected output files."
         )
 
     def prepare_for_submission(self, folder):
