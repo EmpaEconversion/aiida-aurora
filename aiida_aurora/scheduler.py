@@ -34,6 +34,15 @@ _MAP_STATUS_TOMATO = {
     "cd": JobState.DONE,
 }
 
+_MAP_ANNOTATION_TOMATO = {
+    "q": "Queued",
+    "qw": "Queued, matching pipeline found",
+    "r": "Running",
+    "c": "Completed successfully",
+    "ce": "Completed with error",
+    "cd": "Cancelled",
+}
+
 
 class TomatoResource(JobResource):
     """Class for Tomato job resources."""
@@ -283,6 +292,7 @@ class TomatoScheduler(Scheduler):
 
                     try:
                         this_job.job_state = _MAP_STATUS_TOMATO[job[2]]
+                        this_job.annotation = _MAP_ANNOTATION_TOMATO[job[2]]
                     except KeyError:
                         self.logger.warning(
                             f"Unrecognized job_state '{job[2]}' for job id {this_job.job_id}"
@@ -318,6 +328,7 @@ class TomatoScheduler(Scheduler):
                 try:
                     this_job_status = this_job_dict["status"]
                     this_job.job_state = _MAP_STATUS_TOMATO[this_job_status]
+                    this_job.annotation = _MAP_ANNOTATION_TOMATO[this_job_status]
                 except KeyError:
                     self.logger.warning(
                         f"Unrecognized job_state '{this_job_status}' for job id {this_job.job_id}"
