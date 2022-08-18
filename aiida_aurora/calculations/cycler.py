@@ -3,12 +3,15 @@ Calculations provided by aiida_aurora.
 
 Register calculations via the "aiida.calculations" entry point in setup.json.
 """
+from typing import Optional
+
 from aurora.schemas.dgbowl_schemas import conversion_map, payload_models
 import yaml
 
 from aiida.common import datastructures
 from aiida.engine import CalcJob
-from aiida.orm import ArrayData, SinglefileData
+from aiida.engine.processes.exit_code import ExitCode
+from aiida.orm import ArrayData, Node, SinglefileData
 
 from aiida_aurora.data.battery import BatterySampleData, BatteryStateData
 from aiida_aurora.data.control import TomatoSettingsData
@@ -63,33 +66,43 @@ class BatteryCyclerExperiment(CalcJob):
         spec.output("raw_data", valid_type=SinglefileData, help="Raw data retrieved.")
         # spec.output('battery_state', valid_type=BatteryStateData, help='State of the battery after the experiment.')
 
+        # Unrecoverable errors: required retrieved files could not be read, parsed or are otherwise incomplete
         spec.exit_code(
             300,
-            "ERROR_MISSING_OUTPUT_FILES",
+            "ERROR_OUTPUT_FILES_MISSING",
             message="Experiment did not produce any kind of output file.",
         )
         spec.exit_code(
             301,
-            "ERROR_MISSING_JSON_FILE",
-            message="Experiment did not produce an output json file.",
-        )
-        spec.exit_code(
-            302,
-            "ERROR_MISSING_ZIP_FILE",
-            message="Experiment did not produce a zip file with raw data.",
+            "ERROR_OUTPUT_JSON_MISSING",
+            message="Experiment did not produce an output JSON file.",
         )
         spec.exit_code(
             311,
-            "ERROR_COMPLETED_ERROR",
-            message="The tomato job was marked as completed with an error.",
+            "ERROR_OUTPUT_JSON_READ",
+            message="The output JSON file could not be read. Raw data may be available.",
         )
         spec.exit_code(
             312,
-            "ERROR_COMPLETED_CANCELLED",
-            message="The tomato job was marked as cancelled.",
+            "ERROR_OUTPUT_JSON_PARSE",
+            message="The output JSON file could not be parsed. Raw data may be available.",
+        )
+
+        # Warnings: JSON file with data was retrieved, but something went different than expected
+        spec.exit_code(
+            302,
+            "WARNING_OUTPUT_ZIP_MISSING",
+            message="Experiment did not produce a ZIP file with raw data, but the JSON file was parsed.",
         )
         spec.exit_code(
-            400, "ERROR_PARSING_JSON_FILE", message="Parsing of json file failed."
+            501,
+            "WARNING_COMPLETED_ERROR",
+            message="The tomato job was marked as completed with an error, but some files were retrieved.",
+        )
+        spec.exit_code(
+            502,
+            "WARNING_COMPLETED_CANCELLED",
+            message="The tomato job was marked as cancelled, but some files were retrieved.",
         )
 
     def prepare_for_submission(self, folder):
@@ -156,3 +169,8 @@ class BatteryCyclerExperiment(CalcJob):
         calcinfo.retrieve_temporary_list = [f"{self._OUTPUT_FILE_PREFIX}.zip"]
 
         return calcinfo
+
+    def parse_scheduler_output(self, retrieved: Node) -> Optional[ExitCode]:
+        """Parse the output of the scheduler if that functionality has been implemented for the plugin."""
+        # Tomato scheduler does not return any output that should be parsed
+        return None
