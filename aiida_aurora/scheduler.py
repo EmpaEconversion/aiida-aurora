@@ -2,7 +2,6 @@
 Plugin for the Tomato scheduler.
 """
 import datetime
-from msilib.schema import Error
 import re
 
 import yaml
