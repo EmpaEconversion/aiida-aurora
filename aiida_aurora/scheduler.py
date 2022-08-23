@@ -116,8 +116,9 @@ class TomatoScheduler(Scheduler):
             if isinstance(jobs, str):
                 command = f"{self.KETCHUP} status {escape_for_bash(jobs)}"
             else:
+                command = f"{self.KETCHUP} status "
                 try:
-                    command = " ".join(f"{self.KETCHUP} status {j}" for j in jobs)
+                    command += " ".join(f"{j}" for j in jobs)
                 except TypeError as e:
                     raise TypeError(
                         "If provided, the 'jobs' variable must be a string or an iterable of strings"
