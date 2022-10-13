@@ -1,0 +1,12 @@
+---
+description: "Aurora Lab pc"
+label: "ddm07162"
+hostname: "DDM07162"
+transport: "sshtowin"
+scheduler: "tomato"
+work_dir: "/tomato/scratch"
+mpirun_command: "mpirun -np {tot_num_mpiprocs}"
+mpiprocs_per_machine: 1
+shebang: "#!/usr/local/bin/pwsh"
+prepend_text: ""
+append_text: ""

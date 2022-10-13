@@ -1,0 +1,12 @@
+---
+description: "This computer, with direct verdi run execution"
+label: "localhost-verdi"
+hostname: "localhost"
+transport: "local"
+scheduler: "direct"
+work_dir: "/home/aiida/aiida_run/"
+mpirun_command: "verdi -p default run"
+mpiprocs_per_machine: 1
+shebang: "#!/bin/bash"
+prepend_text: "source /opt/conda/bin/activate"
+append_text: ""
