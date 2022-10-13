@@ -28,7 +28,9 @@ def test_process(aurora_code):
         "file1": file1,
         "file2": file2,
         "metadata": {
-            "options": {"max_wallclock_seconds": 30},
+            "options": {
+                "max_wallclock_seconds": 30
+            },
         },
     }
 

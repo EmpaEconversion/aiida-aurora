@@ -40,7 +40,8 @@ def execute_experiment(battery_d, experiment_d):
 
     # generate output dic
     results_d = {
-        "start_time": str(start_time),
+        "start_time":
+        str(start_time),
         "sequence": [
             {
                 "technique": experiment_d["description"].get("technique"),
@@ -49,7 +50,8 @@ def execute_experiment(battery_d, experiment_d):
                 "output_data": output_data,
             },
         ],
-        "end_time": str(end_time),
+        "end_time":
+        str(end_time),
     }
     return results_d
 
@@ -60,17 +62,13 @@ def main():
         description="This script emulates the Aurora's server API responding to requests.",
         formatter_class=argparse.RawTextHelpFormatter,
     )
-    parser.add_argument(
-        "battery_specs", type=str, help="A JSON file with the battery specifications."
-    )
+    parser.add_argument("battery_specs", type=str, help="A JSON file with the battery specifications.")
     parser.add_argument(
         "experiment_specs",
         type=str,
         help="A JSON file with the experiment specifications.",
     )
-    parser.add_argument(
-        "-o", "--output", type=str, default="exp.out", help="Name of the output file."
-    )
+    parser.add_argument("-o", "--output", type=str, default="exp.out", help="Name of the output file.")
     args = parser.parse_args()
 
     try:

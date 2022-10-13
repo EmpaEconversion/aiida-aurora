@@ -1,0 +1,17 @@
+allow_agent: true
+compress: true
+gss_auth: false
+gss_deleg_creds: false
+gss_host: DDM07162
+gss_kex: false
+key_filename: /home/aiida/.ssh/id_ed25519
+key_policy: AutoAddPolicy
+load_system_host_keys: true
+look_for_keys: true
+port: 22
+proxy_command: ''
+proxy_jump: ''
+safe_interval: 30.0
+timeout: 60
+use_login_shell: true
+username: erlo

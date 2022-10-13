@@ -6,14 +6,14 @@ Register data types via the "aiida.data" entry point in setup.json.
 
 import json
 
-from aurora.schemas.data_schemas import BatterySample as BatterySampleSchema
-from aurora.schemas.data_schemas import BatteryState as BatteryStateSchema
+from aurora.schemas.battery import BatterySample as BatterySampleSchema
+from aurora.schemas.battery import BatteryState as BatteryStateSchema
 import yaml
 
 from aiida.orm import Dict
 
 
-class BatterySample(Dict):  # pylint: disable=too-many-ancestors
+class BatterySampleData(Dict):  # pylint: disable=too-many-ancestors
     """
     A battery sample data object.
 
@@ -28,7 +28,7 @@ class BatterySample(Dict):  # pylint: disable=too-many-ancestors
         """
         Constructor for the data class
 
-        Usage: ``BatterySample(dict{...})``
+        Usage: ``BatterySampleData(dict{...})``
 
         :param parameters_dict: dictionary with battery specifications
         :param type parameters_dict: dict
@@ -43,7 +43,7 @@ class BatterySample(Dict):  # pylint: disable=too-many-ancestors
 
         Uses the voluptuous package for validation. Find out about allowed keys using::
 
-            print(BatterySample.schema)
+            print(BatterySampleData.schema)
 
         :param parameters_dict: dictionary with battery specifications
         :param type parameters_dict: dict
@@ -52,20 +52,18 @@ class BatterySample(Dict):  # pylint: disable=too-many-ancestors
         d = BatterySampleSchema(**parameters_dict).dict()
         # Manual fix to convert date-times to ISO string format
         # TODO integrate this into the data schema
-        d["metadata"]["creation_datetime"] = d["metadata"][
-            "creation_datetime"
-        ].isoformat()
+        d["metadata"]["creation_datetime"] = d["metadata"]["creation_datetime"].isoformat()
         return d
 
     def get_json(self):
-        """Get a JSON file containing the BatterySample specs."""
+        """Get a JSON file containing the BatterySampleData specs."""
 
         # this can be customized to fit the desired format
         object_to_be_serialized = self.get_dict()
         return json.dumps(object_to_be_serialized)
 
     def get_yaml(self):
-        """Get a YAML file containing the BatterySample specs."""
+        """Get a YAML file containing the BatterySampleData specs."""
 
         # this can be customized to fit the desired format
         object_to_be_serialized = {"sample": self.get_dict()}
@@ -84,7 +82,7 @@ class BatterySample(Dict):  # pylint: disable=too-many-ancestors
         return string
 
 
-class BatteryState(Dict):  # pylint: disable=too-many-ancestors
+class BatteryStateData(Dict):  # pylint: disable=too-many-ancestors
     """
     A battery state data object.
 
@@ -100,7 +98,7 @@ class BatteryState(Dict):  # pylint: disable=too-many-ancestors
         """
         Constructor for the data class
 
-        Usage: ``BatteryState(dict{...})``
+        Usage: ``BatteryStateData(dict{...})``
 
         :param parameters_dict: dictionary with battery specifications
         :param type parameters_dict: dict
@@ -113,7 +111,7 @@ class BatteryState(Dict):  # pylint: disable=too-many-ancestors
 
         Uses the voluptuous package for validation. Find out about allowed keys using::
 
-            print(BatteryState.schema)
+            print(BatteryStateData.schema)
 
         :param parameters_dict: dictionary with battery specifications
         :param type parameters_dict: dict
