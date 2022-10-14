@@ -8,5 +8,5 @@ verdi computer configure local --config computer_localhost_config.yaml localhost
 verdi computer setup --config computer_localhost-verdi.yml
 verdi computer configure local --config computer_localhost-verdi_config.yaml localhost-verdi
 
-verdi code setup --config code_ketchup-0.2rc1.yml
+verdi code setup --config code_ketchup-0.2rc2.yml
 verdi code setup --config code_monitor.yml
