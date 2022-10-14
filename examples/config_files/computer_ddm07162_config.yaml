@@ -4,7 +4,7 @@ gss_auth: false
 gss_deleg_creds: false
 gss_host: DDM07162
 gss_kex: false
-key_filename: /home/aiida/.ssh/id_ed25519
+key_filename: /home/aiida/.ssh/id_rsa
 key_policy: AutoAddPolicy
 load_system_host_keys: true
 look_for_keys: true
