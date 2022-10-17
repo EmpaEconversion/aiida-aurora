@@ -99,19 +99,24 @@ def analyze_cycling_results(data, consecutive_cycles, threshold, discharge):
                 print(f'Below threshold for {g} cycles!')
     return data
 
-def monitor_analysis(calcjob_node, consecutive_cycles=2, threshold=0.8, discharge=True):
+def cycling_analysis(calcjob_node, retrieve_monitor_params=False, consecutive_cycles=2, threshold=0.8, discharge=True):
     """Perform the cycling analysis. You can provide either the cycler or the monitor calcjob.
     First, it will try to find and analyse any output of the cycler calcjob.
-    If this does not succeed, the monitor calcjob outputs will be analysed (the results or the last snapshot)."""
+    If this does not succeed, the monitor calcjob outputs will be analysed (the results or the last snapshot).
+
+      retrieve_monitor_params :  if True, try to load the monitor parameters from the inputs
+    """
     
+    monitor_calcjob = None
     if calcjob_node.process_type == 'aiida.calculations:aurora.cycler':
         calcjob = calcjob_node
-        # find last monitor, if existing
-        qb = QueryBuilder()
-        qb.append(RemoteData, filters={'uuid': calcjob.outputs.remote_folder.uuid}, tag='rf')
-        qb.append(CalcJobNode, with_incoming='rf', edge_filters={'label': 'monitor_folder'}, project=['*', 'id'], tag='mon')
-        qb.order_by({'mon': {'id': 'desc'}})
-        monitor_calcjob = qb.first()[0] if qb.count() else None
+        if calcjob.get_extra('monitored', False):
+            # find last monitor, if existing
+            qb = QueryBuilder()
+            qb.append(RemoteData, filters={'uuid': calcjob.outputs.remote_folder.uuid}, tag='rf')
+            qb.append(CalcJobNode, with_incoming='rf', edge_filters={'label': 'monitor_folder'}, project=['*', 'id'], tag='mon')
+            qb.order_by({'mon': {'id': 'desc'}})
+            monitor_calcjob = qb.first()[0] if qb.count() else None
     elif calcjob_node.process_type == 'aiida.calculations:calcmonitor.calcjob_monitor':
         monitor_calcjob = calcjob_node
         calcjob = monitor_calcjob.inputs.monitor_folder.get_incoming().get_node_by_label('remote_folder')
@@ -126,6 +131,20 @@ def monitor_analysis(calcjob_node, consecutive_cycles=2, threshold=0.8, discharg
 
     sample = calcjob.inputs.battery_sample
     print(f"Sample:              {sample.label}")
+
+    if monitor_calcjob:
+        try:
+            options = monitor_calcjob.inputs.monitor_protocols['monitor1'].get_attribute('options')
+            threshold = options['threshold']
+            discharge = (options['check_type'] == 'discharge_capacity')
+            consecutive_cycles = options['consecutive_cycles']
+        except aiida.common.exceptions.AiidaException:
+            # use default values
+            pass
+    print(f"Analysis options:")
+    print(f"  check type:        ", "discharge capacity" if discharge else "charge capacity")
+    print(f"  threshold:          {threshold}")
+    print(f"  consecutive cycles: {consecutive_cycles}")
 
     def analyse_calcjob():
         output_labels = calcjob.get_outgoing().all_link_labels()
@@ -142,7 +161,7 @@ def monitor_analysis(calcjob_node, consecutive_cycles=2, threshold=0.8, discharg
             jsdata = json.loads(calcjob.outputs.retrieved.get_object_content('results.json'))
             return analyze_cycling_results(get_data_from_raw(jsdata), consecutive_cycles, threshold, discharge)
         else:
-            print('Monitored CalcJob: no output found.')
+            print('ERROR! CalcJob: no output found.')
             return None
 
     def analyse_monitor_calcjob():
@@ -166,7 +185,7 @@ def monitor_analysis(calcjob_node, consecutive_cycles=2, threshold=0.8, discharg
                     jsdata = json.load(fileobj)
                 return analyze_cycling_results(get_data_from_raw(jsdata), consecutive_cycles, threshold, discharge)
             except FileNotFoundError:
-                print('Monitor CalcJob: no output found.')
+                print('ERROR! Monitor CalcJob: no output found.')
                 return None
         else:
             return None
