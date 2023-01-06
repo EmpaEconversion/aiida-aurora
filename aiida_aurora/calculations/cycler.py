@@ -127,10 +127,7 @@ class BatteryCyclerExperiment(CalcJob):
             for old_method in payload_dict['method']:
                 new_method = dict(old_method)
                 if 'loop' == new_method['technique']:
-                    if 'parameters' not in new_method:
-                        raise ValueError(f'What is happening?:\n\n{new_method}\n\n')
-                    old_value = new_method['parameters']['goto']['value']
-                    new_method['parameters']['goto']['value'] = old_value - 1
+                    new_method['goto'] = new_method['goto'] - 1
                 new_methods.append(new_method)
 
             payload_dict['method'] = new_methods
