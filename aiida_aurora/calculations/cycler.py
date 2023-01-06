@@ -117,8 +117,25 @@ class BatteryCyclerExperiment(CalcJob):
             method=conversion_map[self._INPUT_PAYLOAD_VERSION]["method"](self.inputs.technique.get_dict()),
             tomato=conversion_map[self._INPUT_PAYLOAD_VERSION]["tomato"](**tomato_dict),
         )
+
+        # HOTFIX: Better to fix beforehand (to-do)
+        payload_dict = payload.dict()
+
+        if 'method' in payload_dict:
+            new_methods = []
+
+            for old_method in payload_dict['method']:
+                new_method = dict(old_method)
+                if 'loop' == new_method['technique']:
+                    old_value = new_method['parameters']['goto']['value']
+                    new_method['parameters']['goto']['value'] = old_value - 1
+                new_methods.append(new_method)
+
+            payload_dict['method'] = new_methods
+        # END HOTFIX
+
         with folder.open(self.options.input_filename, "w", encoding="utf8") as handle:
-            handle.write(yaml.dump(payload.dict()))
+            handle.write(yaml.dump(payload_dict))
 
         codeinfo = datastructures.CodeInfo()
 
