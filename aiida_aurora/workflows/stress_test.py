@@ -100,7 +100,7 @@ class StressTestWorkChain(WorkChain):
         cycler_method_dict = DEFAULT_PROTECTION_METHOD
         if 'protection_cycle' in cycler_overrides:
             cycler_overrides_dict = cycler_overrides['protection_cycle']
-            cycler_method_dict = deep_update(cycler_method_dict, cycler_overrides_dict)
+            cycler_method_dict = mydeep_update(cycler_method_dict, cycler_overrides_dict)
 
         builder = BatteryCyclerExperiment.get_builder()
         builder.code = ketchup_code
@@ -117,7 +117,7 @@ class StressTestWorkChain(WorkChain):
         cycler_method_dict = DEFAULT_FORMATION_METHOD
         if 'formation_cycle' in cycler_overrides:
             cycler_overrides_dict = cycler_overrides['formation_cycle']
-            cycler_method_dict = deep_update(cycler_method_dict, cycler_overrides_dict)
+            cycler_method_dict = mydeep_update(cycler_method_dict, cycler_overrides_dict)
 
         builder = BatteryCyclerExperiment.get_builder()
         builder.code = ketchup_code
@@ -134,7 +134,7 @@ class StressTestWorkChain(WorkChain):
         cycler_method_dict = DEFAULT_LONGTERM_METHOD
         if 'longterm_cycle' in cycler_overrides:
             cycler_overrides_dict = cycler_overrides['longterm_cycle']
-            cycler_method_dict = deep_update(cycler_method_dict, cycler_overrides_dict)
+            cycler_method_dict = mydeep_update(cycler_method_dict, cycler_overrides_dict)
 
         builder = BatteryCyclerExperiment.get_builder()
         builder.code = ketchup_code
@@ -163,7 +163,7 @@ class StressTestWorkChain(WorkChain):
         cycler_method_dict = DEFAULT_DISCHARGE_METHOD
         if 'discharge_cycle' in cycler_overrides:
             cycler_overrides_dict = cycler_overrides['discharge_cycle']
-            cycler_method_dict = deep_update(cycler_method_dict, cycler_overrides_dict)
+            cycler_method_dict = mydeep_update(cycler_method_dict, cycler_overrides_dict)
 
         builder = BatteryCyclerExperiment.get_builder()
         builder.code = ketchup_code
@@ -249,3 +249,25 @@ class StressTestWorkChain(WorkChain):
             self.out('results_discharge', discharge_cycle_calcjob.outputs.results)
         else:
             return self.exit_codes.WARNING_CHARGED_SAMPLE
+
+
+####################################################################################################
+def mydeep_update(protocol_basis, protocol_overrides):
+    """Extension of deep update to enter inside each method"""
+    method_basis = protocol_basis['method']
+    method_overrides = protocol_overrides['method']
+
+    steps0 = len(method_basis)
+    steps = len(method_overrides)
+    if steps0 != steps:
+        raise ValueError(f"One of the overrides must have {steps0} steps instead of {steps} (leave steps empty).")
+
+    new_method = []
+    for step_basis, step_override in zip(method_basis,method_overrides):
+        new_step = deep_update(step_basis, step_override)
+        new_method.append(new_step)
+
+    return {'method': new_method}
+
+
+####################################################################################################
