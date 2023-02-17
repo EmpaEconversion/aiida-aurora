@@ -1,0 +1,929 @@
+{
+    "DEFAULT_TOMATO_SETTINGS": {
+        "output": {"path": null, "prefix": null},
+        "snapshot": null,
+        "verbosity": "INFO",
+        "unlock_when_done": true
+    },    
+    "DEFAULT_MONITOR_PROTOCOL": {
+        "sources": {
+            "output": {
+                "filepath": "snapshot.json",
+                "refresh_rate": 600
+            }
+        },
+        "options": {
+            "check_type": "discharge_capacity",
+            "consecutive_cycles": 2,
+            "threshold": 0.8
+        },
+        "retrieve": ["results.json"],
+        "retrieve_temporary": ["results.zip"]
+    },
+    "DEFAULT_DISCHARGE_METHOD": {
+      "method": [
+        {
+          "name": "CC_1",
+          "device": "MPG2",
+          "technique": "constant_current",
+          "parameters": {
+            "time": {
+              "label": "Time:",
+              "units": "s",
+              "value": 36000.0,
+              "required": true,
+              "description": "Maximum duration of the CC step",
+              "default_value": 0.0
+            },
+            "E_range": {
+              "label": "E range",
+              "units": "",
+              "value": "+-5.0 V",
+              "required": true,
+              "description": "Select the voltage range of the potentiostat",
+              "default_value": "auto"
+            },
+            "I_range": {
+              "label": "I range",
+              "units": "",
+              "value": "10 mA",
+              "required": true,
+              "description": "Select the current range of the potentiostat",
+              "default_value": "keep"
+            },
+            "current": {
+              "label": "Step current:",
+              "units": "I",
+              "value": "D/10",
+              "required": true,
+              "description": "Current during the current step",
+              "default_value": 0.0
+            },
+            "is_delta": {
+              "label": "\u0394$I$:",
+              "units": "",
+              "value": false,
+              "required": true,
+              "description": "Is the step current a $\\Delta$ from previous step?",
+              "default_value": false
+            },
+            "n_cycles": {
+              "label": "Number of cycles:",
+              "units": "",
+              "value": 0,
+              "required": true,
+              "description": "Cycle through the current technique N times.",
+              "default_value": 0
+            },
+            "exit_on_limit": {
+              "label": "Exit when limits reached?",
+              "units": "",
+              "value": false,
+              "required": true,
+              "description": "Stop the whole experiment when limit is reached?",
+              "default_value": false
+            },
+            "record_every_dE": {
+              "label": "Record every $dE$:",
+              "units": "V",
+              "value": 0.1,
+              "required": true,
+              "description": "Record a datapoint at prescribed voltage spacing",
+              "default_value": 0.005
+            },
+            "record_every_dt": {
+              "label": "Record every $dt$:",
+              "units": "s",
+              "value": 60.0,
+              "required": true,
+              "description": "Record a datapoint at prescribed time spacing",
+              "default_value": 30.0
+            },
+            "limit_current_max": {
+              "label": "Maximum current:",
+              "units": "I",
+              "value": null,
+              "required": false,
+              "description": "Define the upper limit of current for this step",
+              "default_value": null
+            },
+            "limit_current_min": {
+              "label": "Minimum current:",
+              "units": "I",
+              "value": null,
+              "required": false,
+              "description": "Define the lower limit of current for this step",
+              "default_value": null
+            },
+            "limit_voltage_max": {
+              "label": "Maximum voltage:",
+              "units": "V",
+              "value": 2.5,
+              "required": false,
+              "description": "Define the upper limit of voltage for this step",
+              "default_value": null
+            },
+            "limit_voltage_min": {
+              "label": "Minimum voltage:",
+              "units": "V",
+              "value": 1.5,
+              "required": false,
+              "description": "Define the lower limit of voltage for this step",
+              "default_value": null
+            }
+          },
+          "short_name": "CC",
+          "description": "Controlled current technique, with optional voltage and current limits"
+        }
+      ]
+    },
+    "DEFAULT_LONGTERM_METHOD": {
+      "method": [
+        {
+          "name": "CC_1",
+          "device": "MPG2",
+          "technique": "constant_current",
+          "parameters": {
+            "time": {
+              "label": "Time:",
+              "units": "s",
+              "value": 10800.0,
+              "required": true,
+              "description": "Maximum duration of the CC step",
+              "default_value": 0.0
+            },
+            "E_range": {
+              "label": "E range",
+              "units": "",
+              "value": "+-5.0 V",
+              "required": true,
+              "description": "Select the voltage range of the potentiostat",
+              "default_value": "auto"
+            },
+            "I_range": {
+              "label": "I range",
+              "units": "",
+              "value": "10 mA",
+              "required": true,
+              "description": "Select the current range of the potentiostat",
+              "default_value": "keep"
+            },
+            "current": {
+              "label": "Step current:",
+              "units": "I",
+              "value": "C/3",
+              "required": true,
+              "description": "Current during the current step",
+              "default_value": 0.0
+            },
+            "is_delta": {
+              "label": "\u0394$I$:",
+              "units": "",
+              "value": false,
+              "required": true,
+              "description": "Is the step current a $\\Delta$ from previous step?",
+              "default_value": false
+            },
+            "n_cycles": {
+              "label": "Number of cycles:",
+              "units": "",
+              "value": 0,
+              "required": true,
+              "description": "Cycle through the current technique N times.",
+              "default_value": 0
+            },
+            "exit_on_limit": {
+              "label": "Exit when limits reached?",
+              "units": "",
+              "value": false,
+              "required": true,
+              "description": "Stop the whole experiment when limit is reached?",
+              "default_value": false
+            },
+            "record_every_dE": {
+              "label": "Record every $dE$:",
+              "units": "V",
+              "value": 0.1,
+              "required": true,
+              "description": "Record a datapoint at prescribed voltage spacing",
+              "default_value": 0.005
+            },
+            "record_every_dt": {
+              "label": "Record every $dt$:",
+              "units": "s",
+              "value": 60.0,
+              "required": true,
+              "description": "Record a datapoint at prescribed time spacing",
+              "default_value": 30.0
+            },
+            "limit_current_max": {
+              "label": "Maximum current:",
+              "units": "I",
+              "value": null,
+              "required": false,
+              "description": "Define the upper limit of current for this step",
+              "default_value": null
+            },
+            "limit_current_min": {
+              "label": "Minimum current:",
+              "units": "I",
+              "value": null,
+              "required": false,
+              "description": "Define the lower limit of current for this step",
+              "default_value": null
+            },
+            "limit_voltage_max": {
+              "label": "Maximum voltage:",
+              "units": "V",
+              "value": 2.5,
+              "required": false,
+              "description": "Define the upper limit of voltage for this step",
+              "default_value": null
+            },
+            "limit_voltage_min": {
+              "label": "Minimum voltage:",
+              "units": "V",
+              "value": 1.0,
+              "required": false,
+              "description": "Define the lower limit of voltage for this step",
+              "default_value": null
+            }
+          },
+          "short_name": "CC",
+          "description": "Controlled current technique, with optional voltage and current limits"
+        },
+        {
+          "name": "CC_2",
+          "device": "MPG2",
+          "technique": "constant_current",
+          "parameters": {
+            "time": {
+              "label": "Time:",
+              "units": "s",
+              "value": 10800.0,
+              "required": true,
+              "description": "Maximum duration of the CC step",
+              "default_value": 0.0
+            },
+            "E_range": {
+              "label": "E range",
+              "units": "",
+              "value": "+-5.0 V",
+              "required": true,
+              "description": "Select the voltage range of the potentiostat",
+              "default_value": "auto"
+            },
+            "I_range": {
+              "label": "I range",
+              "units": "",
+              "value": "10 mA",
+              "required": true,
+              "description": "Select the current range of the potentiostat",
+              "default_value": "keep"
+            },
+            "current": {
+              "label": "Step current:",
+              "units": "I",
+              "value": "D/3",
+              "required": true,
+              "description": "Current during the current step",
+              "default_value": 0.0
+            },
+            "is_delta": {
+              "label": "\u0394$I$:",
+              "units": "",
+              "value": false,
+              "required": true,
+              "description": "Is the step current a $\\Delta$ from previous step?",
+              "default_value": false
+            },
+            "n_cycles": {
+              "label": "Number of cycles:",
+              "units": "",
+              "value": 0,
+              "required": true,
+              "description": "Cycle through the current technique N times.",
+              "default_value": 0
+            },
+            "exit_on_limit": {
+              "label": "Exit when limits reached?",
+              "units": "",
+              "value": false,
+              "required": true,
+              "description": "Stop the whole experiment when limit is reached?",
+              "default_value": false
+            },
+            "record_every_dE": {
+              "label": "Record every $dE$:",
+              "units": "V",
+              "value": 0.1,
+              "required": true,
+              "description": "Record a datapoint at prescribed voltage spacing",
+              "default_value": 0.005
+            },
+            "record_every_dt": {
+              "label": "Record every $dt$:",
+              "units": "s",
+              "value": 60.0,
+              "required": true,
+              "description": "Record a datapoint at prescribed time spacing",
+              "default_value": 30.0
+            },
+            "limit_current_max": {
+              "label": "Maximum current:",
+              "units": "I",
+              "value": null,
+              "required": false,
+              "description": "Define the upper limit of current for this step",
+              "default_value": null
+            },
+            "limit_current_min": {
+              "label": "Minimum current:",
+              "units": "I",
+              "value": null,
+              "required": false,
+              "description": "Define the lower limit of current for this step",
+              "default_value": null
+            },
+            "limit_voltage_max": {
+              "label": "Maximum voltage:",
+              "units": "V",
+              "value": 2.5,
+              "required": false,
+              "description": "Define the upper limit of voltage for this step",
+              "default_value": null
+            },
+            "limit_voltage_min": {
+              "label": "Minimum voltage:",
+              "units": "V",
+              "value": 1.5,
+              "required": false,
+              "description": "Define the lower limit of voltage for this step",
+              "default_value": null
+            }
+          },
+          "short_name": "CC",
+          "description": "Controlled current technique, with optional voltage and current limits"
+        },
+        {
+          "name": "LOOP_1",
+          "device": "MPG2",
+          "technique": "loop",
+          "parameters": {
+            "goto": {
+              "label": "Go to:",
+              "units": "",
+              "value": 1,
+              "required": true,
+              "description": "Index of the technique to go back to",
+              "default_value": 1
+            },
+            "n_gotos": {
+              "label": "Repeats",
+              "units": "",
+              "value": 100,
+              "required": true,
+              "description": "Number of times the technique will jump; set to -1 for unlimited",
+              "default_value": -1
+            }
+          },
+          "short_name": "LOOP",
+          "description": "Loop technique, allowing to repeat a set of preceding techniques in a technique array"
+        }
+      ]
+    },
+    "DEFAULT_PROTECTION_METHOD": {
+      "method": [
+        {
+          "name": "CC_1",
+          "device": "MPG2",
+          "technique": "constant_current",
+          "parameters": {
+            "time": {
+              "label": "Time:",
+              "units": "s",
+              "value": 3600.0,
+              "required": true,
+              "description": "Maximum duration of the CC step",
+              "default_value": 0.0
+            },
+            "E_range": {
+              "label": "E range",
+              "units": "",
+              "value": "+-5.0 V",
+              "required": true,
+              "description": "Select the voltage range of the potentiostat",
+              "default_value": "auto"
+            },
+            "I_range": {
+              "label": "I range",
+              "units": "",
+              "value": "10 mA",
+              "required": true,
+              "description": "Select the current range of the potentiostat",
+              "default_value": "keep"
+            },
+            "current": {
+              "label": "Step current:",
+              "units": "I",
+              "value": "C/3",
+              "required": true,
+              "description": "Current during the current step",
+              "default_value": 0.0
+            },
+            "is_delta": {
+              "label": "\u0394$I$:",
+              "units": "",
+              "value": false,
+              "required": true,
+              "description": "Is the step current a $\\Delta$ from previous step?",
+              "default_value": false
+            },
+            "n_cycles": {
+              "label": "Number of cycles:",
+              "units": "",
+              "value": 0,
+              "required": true,
+              "description": "Cycle through the current technique N times.",
+              "default_value": 0
+            },
+            "exit_on_limit": {
+              "label": "Exit when limits reached?",
+              "units": "",
+              "value": false,
+              "required": true,
+              "description": "Stop the whole experiment when limit is reached?",
+              "default_value": false
+            },
+            "record_every_dE": {
+              "label": "Record every $dE$:",
+              "units": "V",
+              "value": 0.1,
+              "required": true,
+              "description": "Record a datapoint at prescribed voltage spacing",
+              "default_value": 0.005
+            },
+            "record_every_dt": {
+              "label": "Record every $dt$:",
+              "units": "s",
+              "value": 30.0,
+              "required": true,
+              "description": "Record a datapoint at prescribed time spacing",
+              "default_value": 30.0
+            },
+            "limit_current_max": {
+              "label": "Maximum current:",
+              "units": "I",
+              "value": null,
+              "required": false,
+              "description": "Define the upper limit of current for this step",
+              "default_value": null
+            },
+            "limit_current_min": {
+              "label": "Minimum current:",
+              "units": "I",
+              "value": null,
+              "required": false,
+              "description": "Define the lower limit of current for this step",
+              "default_value": null
+            },
+            "limit_voltage_max": {
+              "label": "Maximum voltage:",
+              "units": "V",
+              "value": 1.5,
+              "required": false,
+              "description": "Define the upper limit of voltage for this step",
+              "default_value": null
+            },
+            "limit_voltage_min": {
+              "label": "Minimum voltage:",
+              "units": "V",
+              "value": 0.0,
+              "required": false,
+              "description": "Define the lower limit of voltage for this step",
+              "default_value": null
+            }
+          },
+          "short_name": "CC",
+          "description": "Controlled current technique, with optional voltage and current limits"
+        },
+        {
+          "name": "CV_1",
+          "device": "MPG2",
+          "technique": "constant_voltage",
+          "parameters": {
+            "time": {
+              "label": "Time:",
+              "units": "s",
+              "value": 900.0,
+              "required": true,
+              "description": "Maximum duration of the CV step",
+              "default_value": 0.0
+            },
+            "E_range": {
+              "label": "E range",
+              "units": "",
+              "value": "+-5.0 V",
+              "required": true,
+              "description": "Select the voltage range of the potentiostat",
+              "default_value": "auto"
+            },
+            "I_range": {
+              "label": "I range",
+              "units": "",
+              "value": "10 mA",
+              "required": true,
+              "description": "Select the current range of the potentiostat",
+              "default_value": "keep"
+            },
+            "voltage": {
+              "label": "Step voltage:",
+              "units": "V",
+              "value": 1.5,
+              "required": true,
+              "description": "Voltage of the current step",
+              "default_value": 0.0
+            },
+            "is_delta": {
+              "label": "\u0394$V$:",
+              "units": "",
+              "value": false,
+              "required": true,
+              "description": "Is the step voltage a $\\Delta$ from previous step?",
+              "default_value": false
+            },
+            "n_cycles": {
+              "label": "Number of cycles:",
+              "units": "",
+              "value": 0,
+              "required": true,
+              "description": "Cycle through the current technique N times.",
+              "default_value": 0
+            },
+            "exit_on_limit": {
+              "label": "Exit when limits reached?",
+              "units": "",
+              "value": false,
+              "required": true,
+              "description": "Stop the whole experiment when limit is reached?",
+              "default_value": false
+            },
+            "record_every_dI": {
+              "label": "Record every $dI$:",
+              "units": "I",
+              "value": 0.1,
+              "required": true,
+              "description": "Record a datapoint at prescribed current spacing",
+              "default_value": 0.001
+            },
+            "record_every_dt": {
+              "label": "Record every $dt$:",
+              "units": "s",
+              "value": 30.0,
+              "required": true,
+              "description": "Record a datapoint at prescribed time spacing",
+              "default_value": 30.0
+            },
+            "limit_current_max": {
+              "label": "Maximum current:",
+              "units": "I",
+              "value": null,
+              "required": false,
+              "description": "Define the upper limit of current for this step",
+              "default_value": null
+            },
+            "limit_current_min": {
+              "label": "Minimum current:",
+              "units": "I",
+              "value": null,
+              "required": false,
+              "description": "Define the lower limit of current for this step",
+              "default_value": null
+            },
+            "limit_voltage_max": {
+              "label": "Maximum voltage:",
+              "units": "V",
+              "value": 1.5,
+              "required": false,
+              "description": "Define the upper limit of voltage for this step",
+              "default_value": null
+            },
+            "limit_voltage_min": {
+              "label": "Minimum voltage:",
+              "units": "V",
+              "value": 0.0,
+              "required": false,
+              "description": "Define the lower limit of voltage for this step",
+              "default_value": null
+            }
+          },
+          "short_name": "CV",
+          "description": "Controlled voltage technique, with optional current and voltage limits"
+        },
+        {
+          "name": "OCV_1",
+          "device": "MPG2",
+          "technique": "open_circuit_voltage",
+          "parameters": {
+            "time": {
+              "label": "Time:",
+              "units": "s",
+              "value": 21600.0,
+              "required": true,
+              "description": "The length of the OCV step",
+              "default_value": 0.0
+            },
+            "E_range": {
+              "label": "E range",
+              "units": "",
+              "value": "+-5.0 V",
+              "required": true,
+              "description": "",
+              "default_value": "auto"
+            },
+            "I_range": {
+              "label": "I range",
+              "units": "",
+              "value": "10 mA",
+              "required": true,
+              "description": "",
+              "default_value": "1 A"
+            },
+            "record_every_dE": {
+              "label": "Record every $dE$:",
+              "units": "V",
+              "value": 0.1,
+              "required": true,
+              "description": "Record a datapoint at prescribed voltage spacing",
+              "default_value": 0.005
+            },
+            "record_every_dt": {
+              "label": "Record every $dt$:",
+              "units": "s",
+              "value": 30.0,
+              "required": true,
+              "description": "Record a datapoint at prescribed time spacing",
+              "default_value": 30.0
+            }
+          },
+          "short_name": "OCV",
+          "description": "Open circuit voltage"
+        }
+      ]
+    },
+    "DEFAULT_FORMATION_METHOD": {
+      "method": [
+        {
+          "name": "CC_1",
+          "device": "MPG2",
+          "technique": "constant_current",
+          "parameters": {
+            "time": {
+              "label": "Time:",
+              "units": "s",
+              "value": 36000.0,
+              "required": true,
+              "description": "Maximum duration of the CC step",
+              "default_value": 0.0
+            },
+            "E_range": {
+              "label": "E range",
+              "units": "",
+              "value": "+-5.0 V",
+              "required": true,
+              "description": "Select the voltage range of the potentiostat",
+              "default_value": "auto"
+            },
+            "I_range": {
+              "label": "I range",
+              "units": "",
+              "value": "10 mA",
+              "required": true,
+              "description": "Select the current range of the potentiostat",
+              "default_value": "keep"
+            },
+            "current": {
+              "label": "Step current:",
+              "units": "I",
+              "value": "C/10",
+              "required": true,
+              "description": "Current during the current step",
+              "default_value": 0.0
+            },
+            "is_delta": {
+              "label": "\u0394$I$:",
+              "units": "",
+              "value": false,
+              "required": true,
+              "description": "Is the step current a $\\Delta$ from previous step?",
+              "default_value": false
+            },
+            "n_cycles": {
+              "label": "Number of cycles:",
+              "units": "",
+              "value": 0,
+              "required": true,
+              "description": "Cycle through the current technique N times.",
+              "default_value": 0
+            },
+            "exit_on_limit": {
+              "label": "Exit when limits reached?",
+              "units": "",
+              "value": false,
+              "required": true,
+              "description": "Stop the whole experiment when limit is reached?",
+              "default_value": false
+            },
+            "record_every_dE": {
+              "label": "Record every $dE$:",
+              "units": "V",
+              "value": 0.1,
+              "required": true,
+              "description": "Record a datapoint at prescribed voltage spacing",
+              "default_value": 0.005
+            },
+            "record_every_dt": {
+              "label": "Record every $dt$:",
+              "units": "s",
+              "value": 60.0,
+              "required": true,
+              "description": "Record a datapoint at prescribed time spacing",
+              "default_value": 30.0
+            },
+            "limit_current_max": {
+              "label": "Maximum current:",
+              "units": "I",
+              "value": null,
+              "required": false,
+              "description": "Define the upper limit of current for this step",
+              "default_value": null
+            },
+            "limit_current_min": {
+              "label": "Minimum current:",
+              "units": "I",
+              "value": null,
+              "required": false,
+              "description": "Define the lower limit of current for this step",
+              "default_value": null
+            },
+            "limit_voltage_max": {
+              "label": "Maximum voltage:",
+              "units": "V",
+              "value": 2.5,
+              "required": false,
+              "description": "Define the upper limit of voltage for this step",
+              "default_value": null
+            },
+            "limit_voltage_min": {
+              "label": "Minimum voltage:",
+              "units": "V",
+              "value": 1.0,
+              "required": false,
+              "description": "Define the lower limit of voltage for this step",
+              "default_value": null
+            }
+          },
+          "short_name": "CC",
+          "description": "Controlled current technique, with optional voltage and current limits"
+        },
+        {
+          "name": "CC_2",
+          "device": "MPG2",
+          "technique": "constant_current",
+          "parameters": {
+            "time": {
+              "label": "Time:",
+              "units": "s",
+              "value": 36000.0,
+              "required": true,
+              "description": "Maximum duration of the CC step",
+              "default_value": 0.0
+            },
+            "E_range": {
+              "label": "E range",
+              "units": "",
+              "value": "+-5.0 V",
+              "required": true,
+              "description": "Select the voltage range of the potentiostat",
+              "default_value": "auto"
+            },
+            "I_range": {
+              "label": "I range",
+              "units": "",
+              "value": "10 mA",
+              "required": true,
+              "description": "Select the current range of the potentiostat",
+              "default_value": "keep"
+            },
+            "current": {
+              "label": "Step current:",
+              "units": "I",
+              "value": "D/10",
+              "required": true,
+              "description": "Current during the current step",
+              "default_value": 0.0
+            },
+            "is_delta": {
+              "label": "\u0394$I$:",
+              "units": "",
+              "value": false,
+              "required": true,
+              "description": "Is the step current a $\\Delta$ from previous step?",
+              "default_value": false
+            },
+            "n_cycles": {
+              "label": "Number of cycles:",
+              "units": "",
+              "value": 0,
+              "required": true,
+              "description": "Cycle through the current technique N times.",
+              "default_value": 0
+            },
+            "exit_on_limit": {
+              "label": "Exit when limits reached?",
+              "units": "",
+              "value": false,
+              "required": true,
+              "description": "Stop the whole experiment when limit is reached?",
+              "default_value": false
+            },
+            "record_every_dE": {
+              "label": "Record every $dE$:",
+              "units": "V",
+              "value": 0.1,
+              "required": true,
+              "description": "Record a datapoint at prescribed voltage spacing",
+              "default_value": 0.005
+            },
+            "record_every_dt": {
+              "label": "Record every $dt$:",
+              "units": "s",
+              "value": 60.0,
+              "required": true,
+              "description": "Record a datapoint at prescribed time spacing",
+              "default_value": 30.0
+            },
+            "limit_current_max": {
+              "label": "Maximum current:",
+              "units": "I",
+              "value": null,
+              "required": false,
+              "description": "Define the upper limit of current for this step",
+              "default_value": null
+            },
+            "limit_current_min": {
+              "label": "Minimum current:",
+              "units": "I",
+              "value": null,
+              "required": false,
+              "description": "Define the lower limit of current for this step",
+              "default_value": null
+            },
+            "limit_voltage_max": {
+              "label": "Maximum voltage:",
+              "units": "V",
+              "value": 2.5,
+              "required": false,
+              "description": "Define the upper limit of voltage for this step",
+              "default_value": null
+            },
+            "limit_voltage_min": {
+              "label": "Minimum voltage:",
+              "units": "V",
+              "value": 1.5,
+              "required": false,
+              "description": "Define the lower limit of voltage for this step",
+              "default_value": null
+            }
+          },
+          "short_name": "CC",
+          "description": "Controlled current technique, with optional voltage and current limits"
+        },
+        {
+          "name": "LOOP_1",
+          "device": "MPG2",
+          "technique": "loop",
+          "parameters": {
+            "goto": {
+              "label": "Go to:",
+              "units": "",
+              "value": 1,
+              "required": true,
+              "description": "Index of the technique to go back to",
+              "default_value": 1
+            },
+            "n_gotos": {
+              "label": "Repeats",
+              "units": "",
+              "value": 2,
+              "required": true,
+              "description": "Number of times the technique will jump; set to -1 for unlimited",
+              "default_value": -1
+            }
+          },
+          "short_name": "LOOP",
+          "description": "Loop technique, allowing to repeat a set of preceding techniques in a technique array"
+        }
+      ]
+    }
+  }
