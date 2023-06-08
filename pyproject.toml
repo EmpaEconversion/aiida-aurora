@@ -42,6 +42,7 @@ pre-commit = [
 ]
 docs = [
     "sphinx",
+    "sphinx_rtd_theme",
     "sphinxcontrib-contentui",
     "sphinxcontrib-details-directive",
     "furo",
