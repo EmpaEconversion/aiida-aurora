@@ -4,7 +4,7 @@ A dummy experiment specifications class.
 
 import json
 
-from aurora.schemas.cycling import ElectroChemSequence as ElectroChemSequenceSchema
+from aiida_aurora.schemas.cycling import ElectroChemSequence as ElectroChemSequenceSchema
 import yaml
 
 from aiida.orm import Dict

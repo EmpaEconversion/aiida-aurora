@@ -3,7 +3,7 @@ Battery cycling experiment CalcJobs.
 """
 from typing import Optional
 
-from aurora.schemas.dgbowl_schemas import conversion_map, payload_models
+from aiida_aurora.schemas.dgbowl import conversion_map, payload_models
 import yaml
 
 from aiida.common import datastructures
