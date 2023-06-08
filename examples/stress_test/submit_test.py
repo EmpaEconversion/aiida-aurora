@@ -9,7 +9,7 @@ from aiida.engine import submit
 from aiida.plugins import WorkflowFactory
 
 from aiida_aurora.data import BatterySampleData
-from aurora.schemas.battery import BatterySample as BatterySampleSchema
+from aiida_aurora.schemas.battery import BatterySample as BatterySampleSchema
 
 BATTERIES_SPECIFICATIONS_LOCAL = [
     BatterySampleSchema(

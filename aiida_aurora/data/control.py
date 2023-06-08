@@ -3,7 +3,7 @@ A dummy experiment specifications class.
 """
 import json
 
-from aurora.schemas.dgbowl_schemas import conversion_map
+from aiida_aurora.schemas.dgbowl import conversion_map
 import yaml
 
 from aiida.orm import Dict

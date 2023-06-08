@@ -23,6 +23,7 @@ keywords = ["aiida", "plugin", "aurora"]
 requires-python = ">=3.8"
 dependencies = [
     "aiida-core>=1.6.5,<2.0.0",
+    "dgbowl-schemas>=111",
     "pydantic"
 ]
 
