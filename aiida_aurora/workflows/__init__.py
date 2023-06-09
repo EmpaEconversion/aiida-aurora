@@ -5,3 +5,7 @@ Register calculations via the "aiida.calculations" entry point in setup.json.
 """
 
 from .stress_test import StressTestWorkChain
+
+__all__ = [
+    'StressTestWorkChain',
+]

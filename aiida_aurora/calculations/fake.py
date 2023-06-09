@@ -6,7 +6,8 @@ from aiida.engine import CalcJob
 # from aiida.orm import SinglefileData
 from aiida.orm import Dict
 
-from aiida_aurora.data.battery import BatterySampleData, BatteryStateData
+from aiida_aurora.data.battery import BatterySampleData
+# TODO: from aiida_aurora.data.battery import BatteryStateData
 from aiida_aurora.data.experiment import CyclingSpecsData
 
 

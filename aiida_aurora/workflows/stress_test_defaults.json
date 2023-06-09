@@ -4,7 +4,7 @@
         "snapshot": null,
         "verbosity": "INFO",
         "unlock_when_done": true
-    },    
+    },
     "DEFAULT_MONITOR_PROTOCOL": {
         "sources": {
             "output": {

@@ -69,7 +69,7 @@ class TomatoParser(Parser):
             output_raw_data_node_created = False
 
         # Check that json file is present
-        if not output_json_filename in files_retrieved:
+        if output_json_filename not in files_retrieved:
             self.logger.error(f"The output json file '{output_json_filename}' is missing.")
             if output_raw_data_node_created:
                 # only json file is missing
