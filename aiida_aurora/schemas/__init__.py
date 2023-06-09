@@ -1,5 +1,8 @@
-# -*- coding: utf-8 -*-
+from . import battery, cycling, dgbowl, utils
 
-__all__ = ['battery', 'cycling', 'dgbowl', 'utils']
-
-from . import *
+__all__ = [
+    'battery',
+    'cycling',
+    'dgbowl',
+    'utils',
+]

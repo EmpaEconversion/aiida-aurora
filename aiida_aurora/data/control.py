@@ -3,10 +3,11 @@ A dummy experiment specifications class.
 """
 import json
 
-from aiida_aurora.schemas.dgbowl import conversion_map
 import yaml
 
 from aiida.orm import Dict
+
+from aiida_aurora.schemas.dgbowl import conversion_map
 
 TOMATO_PAYLOAD_VERSION = "0.2"
 TomatoSchema = conversion_map[TOMATO_PAYLOAD_VERSION]["tomato"]

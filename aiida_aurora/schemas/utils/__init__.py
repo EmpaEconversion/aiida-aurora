@@ -1,8 +1,9 @@
-# -*- coding: utf-8 -*-
-
 import functools
-from pandas import Series, DataFrame, isna
+
+from pandas import DataFrame, Series, isna
+
 from .. import battery as battery_schemas
+
 
 def _remove_empties_from_dict(a_dict):
     # this may not work for nested lists
@@ -17,12 +18,16 @@ def _remove_empties_from_dict(a_dict):
             new_dict[k] = v
     return new_dict
 
+
 def remove_empties_from_dict_decorator(func):
+
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         dic = func(*args, **kwargs)
         return _remove_empties_from_dict(dic)
+
     return wrapper
+
 
 def _make_formatted_dict(my_dict, key_arr, val):
     """
@@ -32,7 +37,7 @@ def _make_formatted_dict(my_dict, key_arr, val):
     for i in range(len(key_arr)):
         key = key_arr[i]
         if key not in current:
-            if i == len(key_arr)-1:
+            if i == len(key_arr) - 1:
                 current[key] = val
             else:
                 current[key] = {}
@@ -43,6 +48,7 @@ def _make_formatted_dict(my_dict, key_arr, val):
         current = current[key]
     # return _remove_empties_from_dict(my_dict)
     return my_dict
+
 
 def pd_dataframe_to_formatted_json(df, sep="."):
     """Convert a pandas.DataFrame to a list of nested dictionaries."""
@@ -57,6 +63,7 @@ def pd_dataframe_to_formatted_json(df, sep="."):
         result.append(parsed_row)
     return result
 
+
 def dict_to_formatted_json(series, sep="."):
     """Convert a flat dictionary or a pandas.Series to a nested dictionary."""
     if not isinstance(series, (dict, Series)):
@@ -67,6 +74,7 @@ def dict_to_formatted_json(series, sep="."):
         parsed_series = _make_formatted_dict(parsed_series, keys, val)
     return parsed_series
 
+
 def extract_schema_types(model, sep="."):
     """Convert a pydantic schema into a nested dictionary containing types."""
     SCHEMA_TYPES = {'string': str, 'integer': int, 'number': float}
@@ -74,7 +82,9 @@ def extract_schema_types(model, sep="."):
     for name, sdic in model.schema()['properties'].items():
         if '$ref' in sdic:
             # print(f"  {name} is a class {sdic['$ref']}")
-            sub_schema = extract_schema_types(getattr(battery_schemas, sdic['$ref'].split('/')[-1])) # call extract_schema for the $ref class
+            sub_schema = extract_schema_types(
+                getattr(battery_schemas, sdic['$ref'].split('/')[-1])
+            )  # call extract_schema for the $ref class
             for key, value in sub_schema.items():
                 schema_dic[f'{name}.{key}'] = value
         elif 'type' in sdic:

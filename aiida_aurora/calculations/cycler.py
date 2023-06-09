@@ -3,7 +3,6 @@ Battery cycling experiment CalcJobs.
 """
 from typing import Optional
 
-from aiida_aurora.schemas.dgbowl import conversion_map, payload_models
 import yaml
 
 from aiida.common import datastructures
@@ -15,6 +14,7 @@ from aiida_aurora.data.battery import BatterySampleData
 # TODO: from aiida_aurora.data.battery import BatteryStateData
 from aiida_aurora.data.control import TomatoSettingsData
 from aiida_aurora.data.experiment import CyclingSpecsData
+from aiida_aurora.schemas.dgbowl import conversion_map, payload_models
 
 
 class BatteryCyclerExperiment(CalcJob):

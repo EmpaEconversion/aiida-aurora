@@ -4,10 +4,11 @@ A dummy experiment specifications class.
 
 import json
 
-from aiida_aurora.schemas.cycling import ElectroChemSequence as ElectroChemSequenceSchema
 import yaml
 
 from aiida.orm import Dict
+
+from aiida_aurora.schemas.cycling import ElectroChemSequence as ElectroChemSequenceSchema
 
 
 class CyclingSpecsData(Dict):  # pylint: disable=too-many-ancestors
