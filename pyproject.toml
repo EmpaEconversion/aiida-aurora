@@ -26,7 +26,8 @@ dependencies = [
     "dgbowl-schemas>=111,<=113",
     "pydantic",
     "matplotlib",
-    "pandas"
+    "pandas",
+    "aiida-calcmonitor"
 ]
 
 [project.urls]
