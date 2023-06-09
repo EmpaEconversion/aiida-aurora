@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Description
 """
 import json
@@ -9,18 +8,18 @@ from pydantic.utils import deep_update
 from aiida import orm
 from aiida.common import AttributeDict
 from aiida.engine import ToContext, WorkChain
-from aiida.plugins import CalculationFactory, DataFactory
+from aiida.plugins import CalculationFactory, DataFactory, WorkflowFactory
 
 TomatoCalcjob = CalculationFactory('aurora.cycler')
-CyclingSpecsData = aiida.plugins.DataFactory('aurora.cyclingspecs')
-BatterySampleData = aiida.plugins.DataFactory('aurora.batterysample')
-TomatoSettingsData = aiida.plugins.DataFactory('aurora.tomatosettings')
+CyclingSpecsData = DataFactory('aurora.cyclingspecs')
+BatterySampleData = DataFactory('aurora.batterysample')
+TomatoSettingsData = DataFactory('aurora.tomatosettings')
 
 CalcjobMonitor = WorkflowFactory('calcmonitor.monitor_wrapper')
-TomatoMonitorData = aiida.plugins.DataFactory('calcmonitor.monitor.tomatobiologic')
+TomatoMonitorData = DataFactory('calcmonitor.monitor.tomatobiologic')
 
 BASEPATH = pathlib.Path(__file__).parent.resolve()
-with open(f'{BASEPATH}/stress_test_defaults.json', 'r') as fileobj:
+with open(f'{BASEPATH}/stress_test_defaults.json') as fileobj:
     ALL_DEFAULTS = json.load(fileobj)
 
 DEFAULT_TOMATO_SETTINGS = ALL_DEFAULTS['DEFAULT_TOMATO_SETTINGS']
@@ -55,10 +54,10 @@ class StressTestWorkChain(WorkChain):
             cls.gather_results,
         )
 
-        spec.output("results_protection", valid_type=ArrayData, help="Results of the protection step.")
-        spec.output("results_formation", valid_type=ArrayData, help="Results of the formation step.")
-        spec.output("results_cycling", valid_type=ArrayData, help="Results of the main cycling experiment.")
-        spec.output("results_discharge", valid_type=ArrayData, help="Results of the final discharge.")
+        spec.output("results_protection", valid_type=orm.ArrayData, help="Results of the protection step.")
+        spec.output("results_formation", valid_type=orm.ArrayData, help="Results of the formation step.")
+        spec.output("results_cycling", valid_type=orm.ArrayData, help="Results of the main cycling experiment.")
+        spec.output("results_discharge", valid_type=orm.ArrayData, help="Results of the final discharge.")
 
         spec.exit_code(
             501,
@@ -69,13 +68,14 @@ class StressTestWorkChain(WorkChain):
         # yapf: enable
 
     @classmethod
-    def get_builder_from_protocol(cls,
-        ketchup_code = None,
-        monitor_code = None,
-        battery_sample = None,
-        tomato_overrides = None,
-        cycler_overrides = None,
-        monitor_overrides = None,
+    def get_builder_from_protocol(
+        cls,
+        ketchup_code=None,
+        monitor_code=None,
+        battery_sample=None,
+        tomato_overrides=None,
+        cycler_overrides=None,
+        monitor_overrides=None,
         protocol=None,
         overrides=None,
         **kwargs
@@ -102,7 +102,7 @@ class StressTestWorkChain(WorkChain):
             cycler_overrides_dict = cycler_overrides['protection_cycle']
             cycler_method_dict = mydeep_update(cycler_method_dict, cycler_overrides_dict)
 
-        builder = BatteryCyclerExperiment.get_builder()
+        builder = TomatoCalcjob.get_builder()
         builder.code = ketchup_code
         builder.technique = CyclingSpecsData(cycler_method_dict)
         builder.control_settings = TomatoSettingsData(tomato_settings_dict)
@@ -119,7 +119,7 @@ class StressTestWorkChain(WorkChain):
             cycler_overrides_dict = cycler_overrides['formation_cycle']
             cycler_method_dict = mydeep_update(cycler_method_dict, cycler_overrides_dict)
 
-        builder = BatteryCyclerExperiment.get_builder()
+        builder = TomatoCalcjob.get_builder()
         builder.code = ketchup_code
         builder.technique = CyclingSpecsData(cycler_method_dict)
         builder.control_settings = TomatoSettingsData(tomato_settings_dict)
@@ -136,7 +136,7 @@ class StressTestWorkChain(WorkChain):
             cycler_overrides_dict = cycler_overrides['longterm_cycle']
             cycler_method_dict = mydeep_update(cycler_method_dict, cycler_overrides_dict)
 
-        builder = BatteryCyclerExperiment.get_builder()
+        builder = TomatoCalcjob.get_builder()
         builder.code = ketchup_code
         builder.technique = CyclingSpecsData(cycler_method_dict)
         builder.control_settings = TomatoSettingsData(tomato_settings_dict)
@@ -146,7 +146,7 @@ class StressTestWorkChain(WorkChain):
         if monitor_overrides is not None:
             monitor_protocol_dict = deep_update(monitor_protocol_dict, monitor_overrides)
 
-        monitor_builder = TomatoMonitorCalcjob.get_builder()
+        monitor_builder = CalcjobMonitor.get_builder()
         monitor_builder.code = monitor_code
         monitor_builder.metadata.options.parser_name = "calcmonitor.cycler"
         monitor_protocol = TomatoMonitorData(dict=monitor_protocol_dict)
@@ -165,14 +165,13 @@ class StressTestWorkChain(WorkChain):
             cycler_overrides_dict = cycler_overrides['discharge_cycle']
             cycler_method_dict = mydeep_update(cycler_method_dict, cycler_overrides_dict)
 
-        builder = BatteryCyclerExperiment.get_builder()
+        builder = TomatoCalcjob.get_builder()
         builder.code = ketchup_code
         builder.technique = CyclingSpecsData(cycler_method_dict)
         builder.control_settings = TomatoSettingsData(tomato_settings_dict)
         workchain_builder.discharge_cycle = builder
 
         return workchain_builder
-
 
     def run_protection_precycle(self):
         """TODO."""
@@ -236,7 +235,7 @@ class StressTestWorkChain(WorkChain):
 
         if protection_cycle_calcjob.is_finished_ok:
             self.out('results_protection', protection_cycle_calcjob.outputs.results)
-        
+
         if formation_cycle_calcjob.is_finished_ok:
             self.out('results_formation', formation_cycle_calcjob.outputs.results)
 
@@ -263,7 +262,7 @@ def mydeep_update(protocol_basis, protocol_overrides):
         raise ValueError(f"One of the overrides must have {steps0} steps instead of {steps} (leave steps empty).")
 
     new_method = []
-    for step_basis, step_override in zip(method_basis,method_overrides):
+    for step_basis, step_override in zip(method_basis, method_overrides):
         new_step = deep_update(step_basis, step_override)
         new_method.append(new_step)
 

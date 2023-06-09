@@ -11,7 +11,8 @@ from aiida.engine import CalcJob
 from aiida.engine.processes.exit_code import ExitCode
 from aiida.orm import ArrayData, Node, SinglefileData
 
-from aiida_aurora.data.battery import BatterySampleData, BatteryStateData
+from aiida_aurora.data.battery import BatterySampleData
+# TODO: from aiida_aurora.data.battery import BatteryStateData
 from aiida_aurora.data.control import TomatoSettingsData
 from aiida_aurora.data.experiment import CyclingSpecsData
 

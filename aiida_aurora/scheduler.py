@@ -15,15 +15,16 @@ from aiida.schedulers.datastructures import JobInfo, JobResource, JobState
 # There is no "job owner" in tomato.
 
 # Mapping of Tomato states to AiiDA `JobState`s
-## The following statuses are defined in tomato:
-## q  job is queued. Jobs shouldn't stay in q too long as that indicates there
-##      is no pipeline that can process the payload.
-## qw job is queued and a matching pipeline has been found, but it is either busy,
-##      not ready, or without the correct sample
-## r  job is running
-## c  job has completed successfully
-## ce job has completed with an error - output data not guaranteed, might be present in the job folder.
-## cd job has been cancelled - output data should be available as specified in the yamlfile
+#
+# The following statuses are defined in tomato:
+#  - q   job is queued. Jobs shouldn't stay in q too long as that indicates there
+#        is no pipeline that can process the payload.
+#  - qw  job is queued and a matching pipeline has been found, but it is either busy,
+#        not ready, or without the correct sample
+#  - r   job is running
+#  - c   job has completed successfully
+#  - ce  job has completed with an error - output data not guaranteed, might be present in the job folder.
+#  - cd  job has been cancelled - output data should be available as specified in the yamlfile
 
 _MAP_STATUS_TOMATO = {
     "q": JobState.QUEUED,  # JobState.QUEUED_HELD ?

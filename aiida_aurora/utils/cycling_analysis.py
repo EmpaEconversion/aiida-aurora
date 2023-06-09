@@ -1,7 +1,11 @@
 import itertools
 import json
+
 import numpy as np
-from aiida.orm import ArrayData, RemoteData, CalcJobNode, QueryBuilder
+
+from aiida.common.exceptions import AiidaException
+from aiida.orm import ArrayData, CalcJobNode, QueryBuilder, RemoteData
+
 
 def get_data_from_raw(jsdata):
     "Extract raw data from json file."
@@ -24,7 +28,7 @@ def get_data_from_raw(jsdata):
     # integrate and store charge and discharge currents
     Qc, Qd = [], []
     for ii in range(len(idx) - 1):
-        i0, ie = idx[ii], idx[ii+1]
+        i0, ie = idx[ii], idx[ii + 1]
         q = np.trapz(I[i0:ie], t[i0:ie])
         if q > 0:
             Qc.append(q)
@@ -40,6 +44,7 @@ def get_data_from_raw(jsdata):
         'Qc': np.array(Qc)
     }
     return data
+
 
 def get_data_from_results(array_node):
     "Extract data from parsed ArrayData node."
@@ -59,7 +64,7 @@ def get_data_from_results(array_node):
     # integrate and store charge and discharge currents
     Qc, Qd = [], []
     for ii in range(len(idx) - 1):
-        i0, ie = idx[ii], idx[ii+1]
+        i0, ie = idx[ii], idx[ii + 1]
         q = np.trapz(I[i0:ie], t[i0:ie])
         if q > 0:
             Qc.append(q)
@@ -76,11 +81,13 @@ def get_data_from_results(array_node):
     }
     return data
 
+
 def get_capacities(data_dic, discharge=True):
     if discharge:
         return data_dic['Qd']
     else:
         return data_dic['Qc']
+
 
 def analyze_cycling_results(data, consecutive_cycles, threshold, discharge):
     """Analyse cycling results.
@@ -99,6 +106,7 @@ def analyze_cycling_results(data, consecutive_cycles, threshold, discharge):
                 print(f'Below threshold for {g} cycles!')
     return data
 
+
 def cycling_analysis(calcjob_node, retrieve_monitor_params=False, consecutive_cycles=2, threshold=0.8, discharge=True):
     """Perform the cycling analysis. You can provide either the cycler or the monitor calcjob.
     First, it will try to find and analyse any output of the cycler calcjob.
@@ -106,7 +114,7 @@ def cycling_analysis(calcjob_node, retrieve_monitor_params=False, consecutive_cy
 
       retrieve_monitor_params :  if True, try to load the monitor parameters from the inputs
     """
-    
+
     monitor_calcjob = None
     if calcjob_node.process_type == 'aiida.calculations:aurora.cycler':
         calcjob = calcjob_node
@@ -114,7 +122,13 @@ def cycling_analysis(calcjob_node, retrieve_monitor_params=False, consecutive_cy
             # find last monitor, if existing
             qb = QueryBuilder()
             qb.append(RemoteData, filters={'uuid': calcjob.outputs.remote_folder.uuid}, tag='rf')
-            qb.append(CalcJobNode, with_incoming='rf', edge_filters={'label': 'monitor_folder'}, project=['*', 'id'], tag='mon')
+            qb.append(
+                CalcJobNode,
+                with_incoming='rf',
+                edge_filters={'label': 'monitor_folder'},
+                project=['*', 'id'],
+                tag='mon'
+            )
             qb.order_by({'mon': {'id': 'desc'}})
             monitor_calcjob = qb.first()[0] if qb.count() else None
     elif calcjob_node.process_type == 'aiida.calculations:calcmonitor.calcjob_monitor':
@@ -138,7 +152,7 @@ def cycling_analysis(calcjob_node, retrieve_monitor_params=False, consecutive_cy
             threshold = options['threshold']
             discharge = (options['check_type'] == 'discharge_capacity')
             consecutive_cycles = options['consecutive_cycles']
-        except aiida.common.exceptions.AiidaException:
+        except AiidaException:
             # use default values
             pass
     print(f"Analysis options:")
@@ -170,7 +184,8 @@ def cycling_analysis(calcjob_node, retrieve_monitor_params=False, consecutive_cy
             print('Analysing redirected output results')
             res = monitor_calcjob.outputs.redirected_outputs.results
             return analyze_cycling_results(get_data_from_results(res), consecutive_cycles, threshold, discharge)
-        elif 'redirected_outputs__raw_data' in output_labels and 'results.json' in monitor_calcjob.outputs.redirected_outputs.raw_data.list_object_names():
+        elif 'redirected_outputs__raw_data' in output_labels and 'results.json' in monitor_calcjob.outputs.redirected_outputs.raw_data.list_object_names(
+        ):
             print('Analysing redirected output raw_data')
             jsdata = json.loads(monitor_calcjob.outputs.redirected_outputs.get_object_content('results.json'))
             return analyze_cycling_results(get_data_from_raw(jsdata), consecutive_cycles, threshold, discharge)
@@ -181,7 +196,9 @@ def cycling_analysis(calcjob_node, retrieve_monitor_params=False, consecutive_cy
         elif 'remote_folder' in output_labels:
             try:
                 print('Analysing last snapshot.json file')
-                with open(f"{monitor_calcjob.outputs.remote_folder.get_attribute('remote_path')}/snapshot.json", 'r') as fileobj:
+                with open(
+                    f"{monitor_calcjob.outputs.remote_folder.get_attribute('remote_path')}/snapshot.json"
+                ) as fileobj:
                     jsdata = json.load(fileobj)
                 return analyze_cycling_results(get_data_from_raw(jsdata), consecutive_cycles, threshold, discharge)
             except FileNotFoundError:

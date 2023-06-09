@@ -1,6 +1,5 @@
-import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.ticker import MultipleLocator
+
 
 def create_figure(title=None):
     fig, axx = plt.subplots(1, figsize=(9, 4))
@@ -9,11 +8,13 @@ def create_figure(title=None):
         fig.suptitle(title)
     return fig, axx
 
+
 def plot_Ewe(data):
     fig, axx = create_figure()
     axx.plot(data["time"] / 3600., data["Ewe"], label='Ewe')
     axx.set_xlabel('t [h]')
     axx.set_ylabel('Ewe [V]')
+
 
 def plot_I(data):
     fig, axx = create_figure()
@@ -21,6 +22,7 @@ def plot_I(data):
     axx.set_xlabel('t [h]')
     axx.set_ylabel('I [mA]')
     return fig
+
 
 def plot_Ewe_I(data):
     fig, axx = create_figure()
@@ -31,6 +33,7 @@ def plot_Ewe_I(data):
     ax2 = axx.twinx()
     ax2.plot(data["time"] / 3600, data["I"] * 1000., 'r--', label='I')
     ax2.set_ylabel('I [mA]', c='r')
+
 
 def plot_Qd(data, ytick=0.05):
     fig, axx = create_figure()
