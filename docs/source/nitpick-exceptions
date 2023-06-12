@@ -1,0 +1,24 @@
+### python builtins
+py:class EVENT_CALLBACK_TYPE
+py:class TypeVarType
+
+py:class orm.ProcessNode
+
+py:class aiida_aurora.schemas.battery.Config
+py:class aiida_aurora.schemas.cycling.Config
+py:class aiida_aurora.schemas.cycling.DataT
+py:obj aiida_aurora.schemas.cycling.DataT
+
+py:class utils.AttributesFrozendict
+py:class State
+py:class Stepper
+py:class dgbowl_schemas.tomato.payload_0_2.tomato.Tomato
+
+
+py:class pydantic.main.BaseModel
+py:class pydantic.generics.GenericModel
+py:class pydantic.types.PositiveFloat
+py:class pydantic.types.NonNegativeFloat
+
+py:class NonNegativeFloat
+py:class NonNegativeInt

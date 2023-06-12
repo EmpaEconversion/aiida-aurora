@@ -38,5 +38,5 @@ If you have already set up your own aiida_aurora code using
 Available calculations
 ++++++++++++++++++++++
 
-.. aiida-calcjob:: DiffCalculation
+.. aiida-calcjob:: BatteryCyclerExperiment
     :module: aiida_aurora.calculations
