@@ -121,4 +121,6 @@ MIT
 
 ## Contact
 
-loris.ercole@epfl.ch
+ - Francisco F. Ramirez (francisco.ramirez@epfl.ch)
+ - Edan Bainglass (edan.bainglass@psi.ch)
+ - Giovanni Pizzi (giovanni.pizzi@psi.ch)
