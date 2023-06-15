@@ -121,6 +121,6 @@ MIT
 
 ## Contact
 
- - Francisco F. Ramirez (francisco.ramirez@epfl.ch)
- - Edan Bainglass (edan.bainglass@psi.ch)
- - Giovanni Pizzi (giovanni.pizzi@psi.ch)
+- Francisco F. Ramirez (francisco.ramirez@epfl.ch)
+- Edan Bainglass (edan.bainglass@psi.ch)
+- Giovanni Pizzi (giovanni.pizzi@psi.ch)
