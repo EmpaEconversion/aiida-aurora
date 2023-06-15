@@ -1,5 +1,5 @@
-[![Build Status](https://github.com/epfl-theos/aiida-aurora/workflows/ci/badge.svg?branch=master)](https://github.com/epfl-theos/aiida-aurora/actions)
-[![Coverage Status](https://coveralls.io/repos/github/epfl-theos/aiida-aurora/badge.svg?branch=master)](https://coveralls.io/github/epfl-theos/aiida-aurora?branch=master)
+[![Build Status](https://github.com/epfl-theos/aiida-aurora/workflows/ci/badge.svg?branch=main)](https://github.com/epfl-theos/aiida-aurora/actions)
+[![Coverage Status](https://coveralls.io/repos/github/epfl-theos/aiida-aurora/badge.svg?branch=main)](https://coveralls.io/github/epfl-theos/aiida-aurora?branch=main)
 [![Docs status](https://readthedocs.org/projects/aiida-aurora/badge)](http://aiida-aurora.readthedocs.io/)
 [![PyPI version](https://badge.fury.io/py/aiida-aurora.svg)](https://badge.fury.io/py/aiida-aurora)
 
@@ -121,6 +121,4 @@ MIT
 
 ## Contact
 
-francisco.ramirez@epfl.ch
-edan.bainglass@psi.ch
-giovanni.pizzi@psi.ch
+loris.ercole@epfl.ch
