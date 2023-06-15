@@ -28,7 +28,13 @@ If you use AiiDA for your research, please cite the following work:
 
 ``aiida-aurora`` is released under the MIT license.
 
-Please contact loris.ercole@epfl.ch for information concerning ``aiida-aurora`` and the `AiiDA mailing list <http://www.aiida.net/mailing-list/>`_ for questions concerning ``aiida``.
+For information concerning ``aiida-aurora``, please contact:
+
+ - Francisco F. Ramirez (francisco.ramirez@epfl.ch)
+ - Edan Bainglass (edan.bainglass@psi.ch)
+ - Giovanni Pizzi (giovanni.pizzi@psi.ch)
+
+For questions concerning ``aiida``, please use the `AiiDA mailing list <http://www.aiida.net/mailing-list/>`_
 
 
 Indices and tables
