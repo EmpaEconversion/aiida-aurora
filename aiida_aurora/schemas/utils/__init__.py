@@ -24,6 +24,8 @@ def remove_empties_from_dict_decorator(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         dic = func(*args, **kwargs)
+        if isinstance(dic, list):
+            return [_remove_empties_from_dict(d) for d in dic]
         return _remove_empties_from_dict(dic)
 
     return wrapper
