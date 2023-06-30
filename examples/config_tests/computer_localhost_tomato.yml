@@ -1,0 +1,12 @@
+---
+description: "Localhost running the tomato scheduler"
+label: "localhost-tomato"
+hostname: "localhost"
+transport: "local"
+scheduler: "tomato"
+work_dir: "/home/aiida/aiida_run/"
+mpirun_command: "mpirun -np {tot_num_mpiprocs}"
+mpiprocs_per_machine: 1
+shebang: "#!/bin/bash"
+prepend_text: ""
+append_text: ""
