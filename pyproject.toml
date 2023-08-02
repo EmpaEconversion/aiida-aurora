@@ -27,12 +27,12 @@ classifiers = [
 keywords = ["aiida", "plugin", "aurora"]
 requires-python = ">=3.8"
 dependencies = [
-    "aiida-core>=1.6.5,<2.0.0",
+    "aiida-core>=2.0,<3",
+    "aiida-ssh2win>=0.2",
     "dgbowl-schemas>=111,<=113",
-    "pydantic",
+    "pydantic<2.0",
     "matplotlib",
-    "pandas",
-    "aiida-calcmonitor"
+    "pandas~=1.5",
 ]
 
 [project.urls]
