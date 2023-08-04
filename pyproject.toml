@@ -66,9 +66,6 @@ docs = [
 "aurora.fake" = "aiida_aurora.calculations.fake:BatteryFakeExperiment"
 "aurora.cycler" = "aiida_aurora.calculations.cycler:BatteryCyclerExperiment"
 
-[project.entry-points.'aiida.workflows']
-'aurora.stress_test' = 'aiida_aurora.workflows.stress_test:StressTestWorkChain'
-
 [project.entry-points."aiida.parsers"]
 "aurora" = "aiida_aurora.parsers:TomatoParser"
 
