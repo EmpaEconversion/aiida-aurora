@@ -342,7 +342,8 @@ class TomatoScheduler(Scheduler):
         stdout_dict = yaml.full_load(stdout)
         if "jobid" in stdout_dict:
             self._logger.debug(f"The submitted jobid is {stdout_dict['jobid']}")
-            return stdout_dict["jobid"]
+            # HACK did not need to str-cast prior to aiida 2.x upgrade
+            return str(stdout_dict["jobid"])
 
         # If I am here, no jobid was found
         self.logger.error(f"in _parse_submit_output: unable to find the job id: {stdout}")
