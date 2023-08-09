@@ -4,7 +4,7 @@ gss_auth: false
 gss_deleg_creds: false
 gss_host: DDM07162
 gss_kex: false
-key_filename: /home/aiida/.ssh/id_rsa
+key_filename: /home/jovyan/.ssh/id_rsa
 key_policy: AutoAddPolicy
 load_system_host_keys: true
 look_for_keys: true
@@ -14,4 +14,4 @@ proxy_jump: ''
 safe_interval: 30.0
 timeout: 60
 use_login_shell: true
-username: erlo
+username: svfe

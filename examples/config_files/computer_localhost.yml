@@ -2,9 +2,9 @@
 description: "This computer"
 label: "localhost"
 hostname: "localhost"
-transport: "local"
-scheduler: "direct"
-work_dir: "/home/aiida/aiida_run/"
+transport: "core.local"
+scheduler: "core.direct"
+work_dir: "/home/jovyan/aiida_run/"
 mpirun_command: "mpirun -np {tot_num_mpiprocs}"
 mpiprocs_per_machine: 1
 shebang: "#!/bin/bash"
