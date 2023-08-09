@@ -94,7 +94,7 @@ class BatteryCyclerExperiment(CalcJob):
         """
 
         # if connecting to a Windows PowerShell computer, change the extension of the submit script to '.ps1'
-        if self.inputs.code.computer.transport_type == "sshtowin":
+        if self.inputs.code.computer.transport_type == "ssh2win":
             submit_script_filename = self.node.get_option("submit_script_filename")
             if not submit_script_filename.endswith(".ps1"):
                 if submit_script_filename.endswith(".sh"):
