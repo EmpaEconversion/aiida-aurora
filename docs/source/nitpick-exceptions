@@ -2,6 +2,8 @@
 py:class EVENT_CALLBACK_TYPE
 py:class TypeVarType
 
+py:class Logger
+
 py:class orm.ProcessNode
 
 py:class aiida_aurora.schemas.battery.Config
