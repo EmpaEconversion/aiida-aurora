@@ -73,7 +73,12 @@ master_doc = "index"
 # General information about the project.
 project = "aiida-aurora"
 copyright_first_year = "2022"
-copyright_owners = "Loris Ercole"
+copyright_owners = (
+    "Loris Ercole (loris.ercole@gmail.com)",
+    "Francisco F. Ramirez (francisco.ramirez@epfl.ch)",
+    "Edan Bainglass (edan.bainglass@psi.ch)",
+    "Giovanni Pizzi (giovanni.pizzi@psi.ch)",
+)
 
 current_year = str(time.localtime().tm_year)
 copyright_year_string = (
