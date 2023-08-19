@@ -48,8 +48,8 @@ jobs:
       env:
         AIIDA_TEST_BACKEND: ${{ matrix.backend }}
         # show timings of tests
-        PYTEST_ADDOPTS: "--durations=0"
-      run: py.test --cov aiida_aurora --cov-append .
+        PYTEST_ADDOPTS: "--durations=0 --cov=aiida_aurora --cov-append"
+      run: py.test tests
 
   docs:
     runs-on: ubuntu-latest
