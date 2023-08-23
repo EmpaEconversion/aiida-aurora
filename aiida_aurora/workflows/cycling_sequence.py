@@ -11,14 +11,11 @@ TomatoSettingsData = DataFactory('aurora.tomatosettings')
 def validate_inputs(inputs, ctx=None):
     """Validate the inputs of the entire input namespace."""
 
-    error_message = ''
-    for namekey in inputs['techniques'].keys():
-        if namekey not in inputs['control_settings']:
-            error_message += f'namekey {namekey} missing in control_settings\n'
+    reference_keys = inputs['protocols'].keys()
 
     for namekey in inputs['control_settings'].keys():
-        if namekey not in inputs['techniques']:
-            error_message += f'namekey {namekey} missing in techniques\n'
+        if namekey not in reference_keys:
+            error_message += f'namekey {namekey} missing in protocols\n'
 
     if len(error_message) > 0:
         return error_message
@@ -44,7 +41,7 @@ class CyclingSequenceWorkChain(WorkChain):
         )
 
         spec.input_namespace(
-            "techniques",
+            "protocols",
             dynamic=True,
             valid_type=CyclingSpecsData,
             help="List of experiment specifications."
@@ -62,46 +59,64 @@ class CyclingSequenceWorkChain(WorkChain):
             help="Results of each step by key."
         )
 
+        spec.inputs.validator = validate_inputs
+
         spec.outline(
             cls.setup_workload,
             while_(cls.has_steps_remaining)(
                 cls.run_cycling_step,
+                cls.inspect_cycling_step,
             ),
             cls.gather_results,
         )
 
+        spec.exit_code(401,
+            'ERROR_IN_CYCLING_STEP',
+            message='One of the steps of CyclingSequenceWorkChain failed'
+        )
+        
     def setup_workload(self):
         """Takes the inputs and wraps them together."""
-        self.worksteps_keynames = list(self.inputs['techniques'].keys())
+        self.worksteps_keynames = list(self.inputs['protocols'].keys())
 
     def has_steps_remaining(self):
-        """Checks if there is any remaining step"""
+        """Check if there is any remaining step."""
         return len(self.worksteps_keynames) > 0
 
+    def inspect_cycling_step(self):
+        """Verify that the last cycling step finished successfully."""
+        last_subprocess = self.ctx.subprocesses[-1]
+
+        if not last_subprocess.is_finished_ok:
+            pkid = last_subprocess.pk
+            stat = last_subprocess.exit_status
+            self.report(f'Cycling substep <pk={pkid}> failed with exit status {stat}')
+            return self.exit_codes.ERROR_IN_CYCLING_STEP
+
     def run_cycling_step(self):
-        """Description"""
+        """Run the next cycling step."""        
         current_keyname = self.worksteps_keynames.pop(0)
         inputs = {
             'code': self.inputs.tomato_code,
             'battery_sample': self.inputs.battery_sample,
-            'technique': self.inputs.techniques[current_keyname],
+            'technique': self.inputs.protocols[current_keyname],
             'control_settings': self.inputs.control_settings[current_keyname],
         }
         running = self.submit(CyclerCalcjob, **inputs)
         self.report(f'launching CyclerCalcjob<{running.pk}>')
-        return ToContext(workchains=append_(running))
+        return ToContext(subprocesses=append_(running))
 
     def gather_results(self):
-        """Description"""
-        keynames = list(self.inputs['techniques'].keys())
-        if len(self.ctx.workchains) != len(keynames):
-            raise RuntimeError('Problem with workchain!')
+        """Gather the results from all cycling steps."""
+        keynames = list(self.inputs['protocols'].keys())
+        if len(self.ctx.subprocesses) != len(keynames):
+            raise RuntimeError('Problem with subprocess!')
 
         multiple_results = {}
         for keyname in keynames:
-            current_workchain = self.ctx.workchains.pop(0)
-            if 'results' not in current_workchain.outputs:
+            current_subprocess = self.ctx.subprocesses.pop(0)
+            if 'results' not in current_subprocess.outputs:
                 continue
-            multiple_results[keyname] = current_workchain.outputs.results
+            multiple_results[keyname] = current_subprocess.outputs.results
 
         self.out('results', dict(multiple_results))
