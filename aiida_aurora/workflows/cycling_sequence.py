@@ -10,13 +10,19 @@ TomatoSettingsData = DataFactory('aurora.tomatosettings')
 
 def validate_inputs(inputs, ctx=None):
     """Validate the inputs of the entire input namespace."""
+    error_message = ''
 
     reference_keys = inputs['protocols'].keys()
-
-    error_message = ''
     for namekey in inputs['control_settings'].keys():
+
         if namekey not in reference_keys:
             error_message += f'namekey {namekey} missing in protocols\n'
+            continue
+
+        reference_keys.remove(namekey)
+
+    for remaining_key in reference_keys:
+        error_message += f'protocol {remaining_key} has no settings\n'
 
     if len(error_message) > 0:
         return error_message
