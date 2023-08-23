@@ -13,6 +13,7 @@ def validate_inputs(inputs, ctx=None):
 
     reference_keys = inputs['protocols'].keys()
 
+    error_message = ''
     for namekey in inputs['control_settings'].keys():
         if namekey not in reference_keys:
             error_message += f'namekey {namekey} missing in protocols\n'
@@ -70,11 +71,12 @@ class CyclingSequenceWorkChain(WorkChain):
             cls.gather_results,
         )
 
-        spec.exit_code(401,
+        spec.exit_code(
+            401,
             'ERROR_IN_CYCLING_STEP',
             message='One of the steps of CyclingSequenceWorkChain failed'
         )
-        
+
     def setup_workload(self):
         """Takes the inputs and wraps them together."""
         self.worksteps_keynames = list(self.inputs['protocols'].keys())
@@ -94,7 +96,7 @@ class CyclingSequenceWorkChain(WorkChain):
             return self.exit_codes.ERROR_IN_CYCLING_STEP
 
     def run_cycling_step(self):
-        """Run the next cycling step."""        
+        """Run the next cycling step."""
         current_keyname = self.worksteps_keynames.pop(0)
         inputs = {
             'code': self.inputs.tomato_code,
