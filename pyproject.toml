@@ -27,12 +27,12 @@ classifiers = [
 keywords = ["aiida", "plugin", "aurora"]
 requires-python = ">=3.8"
 dependencies = [
-    "aiida-core>=1.6.5,<2.0.0",
+    "aiida-core>=2.0,<3",
+    "aiida-ssh2win>=0.2",
     "dgbowl-schemas>=111,<=113",
-    "pydantic",
+    "pydantic<2.0",
     "matplotlib",
-    "pandas",
-    "aiida-calcmonitor"
+    "pandas~=1.5",
 ]
 
 [project.urls]
@@ -65,9 +65,6 @@ docs = [
 [project.entry-points."aiida.calculations"]
 "aurora.fake" = "aiida_aurora.calculations.fake:BatteryFakeExperiment"
 "aurora.cycler" = "aiida_aurora.calculations.cycler:BatteryCyclerExperiment"
-
-[project.entry-points.'aiida.workflows']
-'aurora.stress_test' = 'aiida_aurora.workflows.stress_test:StressTestWorkChain'
 
 [project.entry-points."aiida.parsers"]
 "aurora" = "aiida_aurora.parsers:TomatoParser"

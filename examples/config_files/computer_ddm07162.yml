@@ -2,7 +2,7 @@
 description: "Aurora Lab pc"
 label: "ddm07162"
 hostname: "DDM07162"
-transport: "sshtowin"
+transport: "ssh2win"
 scheduler: "tomato"
 work_dir: "/tomato/scratch"
 mpirun_command: "mpirun -np {tot_num_mpiprocs}"

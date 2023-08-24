@@ -2,9 +2,9 @@
 description: "This computer, with direct verdi run execution"
 label: "localhost-verdi"
 hostname: "localhost"
-transport: "local"
-scheduler: "direct"
-work_dir: "/home/aiida/aiida_run/"
+transport: "core.local"
+scheduler: "core.direct"
+work_dir: "/home/jovyan/aiida_run/"
 mpirun_command: "verdi -p default run"
 mpiprocs_per_machine: 1
 shebang: "#!/bin/bash"

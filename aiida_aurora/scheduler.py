@@ -144,7 +144,11 @@ class TomatoScheduler(Scheduler):
         :param job_tmpl: a ``JobTemplate`` instance with relevant parameters set.
         """
         # set the `_shell_cmd` class attribute from the job template
-        TomatoScheduler._shell_cmd = job_tmpl.shell_type
+        # FIXME shell_type used to be job_tmpl.shell_type, which was added to
+        # aiida-core's `JobTemplate` class by Loris. Awaiting resolution.
+        shell_type = "powershell"
+        # shell_type = "bash"  # uncomment when debugging on Linux
+        TomatoScheduler._shell_cmd = shell_type
         self._logger.debug(f"_get_submit_script_header: _shell_cmd: {self._shell_cmd}")
 
         import string
@@ -155,14 +159,14 @@ class TomatoScheduler(Scheduler):
             job_title = re.sub(r"[^a-zA-Z0-9_.-]+", "", job_tmpl.job_name)
 
             # prepend a 'j' (for 'job') before the string if the string
-            # is now empty or does not start with a valid charachter
+            # is now empty or does not start with a valid character
             if not job_title or (job_title[0] not in string.ascii_letters + string.digits):
                 job_title = f"j{job_title}"
 
             # Truncate to the first 128 characters
             # Nothing is done if the string is shorter.
             job_title = job_title[:128]
-            if job_tmpl.shell_type == "powershell":
+            if shell_type == "powershell":
                 header = f"$JOB_TITLE='{job_title}'"
             else:
                 header = f"JOB_TITLE='{job_title}'"
@@ -342,7 +346,8 @@ class TomatoScheduler(Scheduler):
         stdout_dict = yaml.full_load(stdout)
         if "jobid" in stdout_dict:
             self._logger.debug(f"The submitted jobid is {stdout_dict['jobid']}")
-            return stdout_dict["jobid"]
+            # HACK did not need to str-cast prior to aiida 2.x upgrade
+            return str(stdout_dict["jobid"])
 
         # If I am here, no jobid was found
         self.logger.error(f"in _parse_submit_output: unable to find the job id: {stdout}")

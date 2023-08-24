@@ -43,7 +43,6 @@ jobs:
       run: |
         pip install --upgrade pip
         pip install -e .[testing]
-        reentry scan -r aiida
 
     - name: Run test suite
       env:
@@ -65,7 +64,6 @@ jobs:
       run: |
         pip install --upgrade pip
         pip install -e .[docs]
-        reentry scan -r aiida
     - name: Build docs
       run: cd docs && make
 
@@ -82,7 +80,6 @@ jobs:
       run: |
         pip install --upgrade pip
         pip install -e .[pre-commit,docs,testing]
-        reentry scan -r aiida
     - name: Run pre-commit
       run: |
         pre-commit install
