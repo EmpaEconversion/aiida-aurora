@@ -16,7 +16,6 @@ def get_data_from_raw(jsdata):
     t = np.array([ts["uts"] for ts in raw_data]) - raw_data[0]["uts"]
     Ewe = np.array([ts["raw"]["Ewe"]["n"] for ts in raw_data])
     I = np.array([ts["raw"]["I"]["n"] for ts in raw_data])
-    cn = np.array([ts["raw"]["cycle number"] for ts in raw_data])
 
     # find indices of sign changes in I
     idx = np.where(np.diff(np.sign(I)) != 0)[0]
@@ -30,11 +29,12 @@ def get_data_from_raw(jsdata):
             Qc.append(q)
         else:
             Qd.append(abs(q))
+
     return {
         'time': t,
         'Ewe': Ewe,
         'I': I,
-        'cn': cn,
+        'cn': len(Qd),
         'time-cycles': t[idx[2::2]],
         'Qd': np.array(Qd),
         'Qc': np.array(Qc),
@@ -51,7 +51,6 @@ def get_data_from_results(array_node):
     t -= t[0]
     Ewe = array_node.get_array('step0_Ewe_n')
     I = array_node.get_array('step0_I_n')
-    cn = array_node.get_array('step0_cycle_number')
 
     # find indices of sign changes in I
     idx = np.where(np.diff(np.sign(I)) != 0)[0]
@@ -65,11 +64,12 @@ def get_data_from_results(array_node):
             Qc.append(q)
         else:
             Qd.append(abs(q))
+
     return {
         'time': t,
         'Ewe': Ewe,
         'I': I,
-        'cn': cn,
+        'cn': len(Qd),
         'time-cycles': t[idx[2::2]],
         'Qd': np.array(Qd),
         'Qc': np.array(Qc),
