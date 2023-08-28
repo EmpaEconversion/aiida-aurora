@@ -84,7 +84,7 @@ class CyclingSequenceWorkChain(WorkChain):
         )
 
     def setup_workload(self):
-        """Takes the inputs and wraps them together."""
+        """Take the inputs and wrap them together."""
         self.worksteps_keynames = list(self.inputs['protocols'].keys())
 
     def has_steps_remaining(self):
@@ -107,7 +107,7 @@ class CyclingSequenceWorkChain(WorkChain):
         inputs = {
             'code': self.inputs.tomato_code,
             'battery_sample': self.inputs.battery_sample,
-            'technique': self.inputs.protocols[current_keyname],
+            'protocol': self.inputs.protocols[current_keyname],
             'control_settings': self.inputs.control_settings[current_keyname],
         }
         running = self.submit(CyclerCalcjob, **inputs)

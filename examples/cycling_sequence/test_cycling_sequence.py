@@ -14,7 +14,7 @@ TomatoSettingsData = DataFactory('aurora.tomatosettings')
 
 @calcfunction
 def generate_test_inputs():
-    """Generated the inputs."""
+    """Generate the inputs."""
     nodes_dict = {}
 
     nodes_dict['sample'] = BatterySampleData({
@@ -96,7 +96,7 @@ workflow_inputs = generate_test_inputs()
 workflow_builder.tomato_code = orm.load_code('ketchup-0.2rc2@localhost-tomato')
 
 workflow_builder.battery_sample = workflow_inputs['sample']
-workflow_builder.techniques = {
+workflow_builder.protocols = {
     'step1': workflow_inputs['step1_tech'],
     'step2': workflow_inputs['step2_tech'],
 }
