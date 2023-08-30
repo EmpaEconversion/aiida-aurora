@@ -551,12 +551,21 @@ ElectroChemPayloads = Union[DummySequential,
 
 
 class ElectroChemSequence(BaseModel):
+    name: str = ""
     method: Sequence[ElectroChemPayloads]
+
+    class Config:
+        validate_assignment = True
+        extra = Extra.forbid
 
     @property
     def n_steps(self):
         "Number of steps of the method"
         return len(self.method)
+
+    def set_name(self, name: str) -> None:
+        """docstring"""
+        self.name = name
 
     def add_step(self, elem):
         if not isinstance(elem, get_args(ElectroChemPayloads)):
@@ -576,6 +585,7 @@ class ElectroChemSequence(BaseModel):
             j = i + 1
             self.method[i], self.method[j] = self.method[j], self.method[i]
 
-    class Config:
-        validate_assignment = True
-        extra = Extra.forbid
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, ElectroChemSequence):
+            return NotImplemented
+        return self.name == other.name
