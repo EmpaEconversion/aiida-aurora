@@ -12,7 +12,7 @@ def validate_inputs(inputs, ctx=None):
     """Validate the inputs of the entire input namespace."""
     error_message = ''
 
-    reference_keys = inputs['protocols'].keys()
+    reference_keys = set(inputs['protocols'].keys())
     for namekey in inputs['control_settings'].keys():
 
         if namekey not in reference_keys:
