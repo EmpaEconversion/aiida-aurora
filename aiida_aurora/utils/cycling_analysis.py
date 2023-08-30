@@ -40,12 +40,13 @@ def cycling_analysis(node: CalcJobNode) -> Tuple[dict, str]:
     sample: BatterySample = node.inputs.battery_sample
     report += f"Sample:    {sample.label}\n"
 
-    if node.get_extra("monitored", False):
-        report += "Monitored: True\n"
-        monitors = get_monitors(node)
+    report += "Monitored: "
+
+    if monitors := get_monitors(node):
+        report += "True\n"
         report += add_monitor_details(monitors)
     else:
-        report += "Monitored: False\n"
+        report += "False\n"
 
     data, analysis = process_data(node)
 
@@ -98,6 +99,9 @@ def get_node_monitor_calcjob(node: CalcJobNode) -> Optional[CalcJobNode]:
     `Optional[CalcJobNode]`
         The associated monitor calcjob node, `None` if not found.
     """
+
+    if "remote_folder" not in node.outputs:
+        return None
 
     remote_folder: RemoteData = node.outputs.remote_folder
 
