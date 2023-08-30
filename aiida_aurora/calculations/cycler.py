@@ -49,7 +49,7 @@ class BatteryCyclerExperiment(CalcJob):
             default=cls._OUTPUT_FILE_PREFIX,
         )
         spec.input("battery_sample", valid_type=BatterySampleData, help="Battery sample used.")
-        spec.input("technique", valid_type=CyclingSpecsData, help="Experiment specifications.")
+        spec.input("protocol", valid_type=CyclingSpecsData, help="Experiment specifications.")
         spec.input("control_settings", valid_type=TomatoSettingsData, help="Experiment control settings.")
         spec.output("results", valid_type=ArrayData, help="Results of the experiment.")
         spec.output("raw_data", valid_type=SinglefileData, help="Raw data retrieved.")
@@ -115,7 +115,7 @@ class BatteryCyclerExperiment(CalcJob):
         payload = TomatoPayload(
             version=self._INPUT_PAYLOAD_VERSION,
             sample=conversion_map[self._INPUT_PAYLOAD_VERSION]["sample"](self.inputs.battery_sample.get_dict()),
-            method=conversion_map[self._INPUT_PAYLOAD_VERSION]["method"](self.inputs.technique.get_dict()),
+            method=conversion_map[self._INPUT_PAYLOAD_VERSION]["method"](self.inputs.protocol.get_dict()),
             tomato=conversion_map[self._INPUT_PAYLOAD_VERSION]["tomato"](**tomato_dict),
         )
 

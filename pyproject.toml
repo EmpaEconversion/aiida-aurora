@@ -66,6 +66,9 @@ docs = [
 "aurora.fake" = "aiida_aurora.calculations.fake:BatteryFakeExperiment"
 "aurora.cycler" = "aiida_aurora.calculations.cycler:BatteryCyclerExperiment"
 
+[project.entry-points.'aiida.workflows']
+'aurora.cycling_sequence' = 'aiida_aurora.workflows.cycling_sequence:CyclingSequenceWorkChain'
+
 [project.entry-points."aiida.calculations.monitors"]
 "aurora.monitors.capacity_threshold" = "aiida_aurora.monitors:monitor_capacity_threshold"
 

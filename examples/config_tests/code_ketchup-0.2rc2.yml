@@ -1,0 +1,10 @@
+---
+label: "ketchup-0.2rc2"
+computer: "localhost-tomato"
+description: "ketchup submit - tomato 0.2rc2"
+input_plugin: "aurora.cycler"
+on_computer: true
+remote_abs_path: "/home/aiida/.conda/envs/tomato/bin/ketchup"
+use_double_quotes: False
+prepend_text: ""
+append_text: ""
