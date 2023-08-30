@@ -34,36 +34,40 @@ class CyclingSequenceWorkChain(WorkChain):
     @classmethod
     def define(cls, spec):
         """Define the process specification."""
-        # yapf: disable
+
         super().define(spec)
+
         spec.input(
             "battery_sample",
             valid_type=BatterySampleData,
-            help="Battery sample to be used."
+            help="Battery sample to be used.",
         )
+
         spec.input(
             "tomato_code",
             valid_type=orm.Code,
-            help="Tomato code to use."
+            help="Tomato code to use.",
         )
 
         spec.input_namespace(
             "protocols",
             dynamic=True,
             valid_type=CyclingSpecsData,
-            help="List of experiment specifications."
+            help="List of experiment specifications.",
         )
+
         spec.input_namespace(
             "control_settings",
             dynamic=True,
             valid_type=TomatoSettingsData,
-            help="List of experiment control settings."
+            help="List of experiment control settings.",
         )
+
         spec.output_namespace(
             "results",
             dynamic=True,
             valid_type=orm.ArrayData,
-            help="Results of each step by key."
+            help="Results of each step by key.",
         )
 
         spec.inputs.validator = validate_inputs
@@ -80,7 +84,7 @@ class CyclingSequenceWorkChain(WorkChain):
         spec.exit_code(
             401,
             'ERROR_IN_CYCLING_STEP',
-            message='One of the steps of CyclingSequenceWorkChain failed'
+            message='One of the steps of CyclingSequenceWorkChain failed',
         )
 
     def setup_workload(self):
@@ -104,12 +108,14 @@ class CyclingSequenceWorkChain(WorkChain):
     def run_cycling_step(self):
         """Run the next cycling step."""
         current_keyname = self.worksteps_keynames.pop(0)
+
         inputs = {
             'code': self.inputs.tomato_code,
             'battery_sample': self.inputs.battery_sample,
             'protocol': self.inputs.protocols[current_keyname],
             'control_settings': self.inputs.control_settings[current_keyname],
         }
+
         running = self.submit(CyclerCalcjob, **inputs)
         self.report(f'launching CyclerCalcjob<{running.pk}>')
         return ToContext(subprocesses=append_(running))
