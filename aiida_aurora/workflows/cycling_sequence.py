@@ -63,6 +63,13 @@ class CyclingSequenceWorkChain(WorkChain):
             help="List of experiment control settings.",
         )
 
+        spec.input_namespace(
+            "monitor_settings",
+            dynamic=True,
+            valid_type=orm.Dict,
+            help="Dictionary of battery experiment monitor settings.",
+        )
+
         spec.output_namespace(
             "results",
             dynamic=True,
@@ -116,7 +123,18 @@ class CyclingSequenceWorkChain(WorkChain):
             'control_settings': self.inputs.control_settings[current_keyname],
         }
 
+        has_monitors = current_keyname in self.inputs.monitor_settings
+
+        if has_monitors:
+            inputs['monitors'] = self.inputs.monitor_settings[current_keyname]
+
         running = self.submit(CyclerCalcjob, **inputs)
+
+        if has_monitors:
+            running.set_extra('monitored', True)
+        else:
+            running.set_extra('monitored', False)
+
         self.report(f'launching CyclerCalcjob<{running.pk}>')
         return ToContext(subprocesses=append_(running))
 
