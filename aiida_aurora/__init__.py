@@ -4,4 +4,4 @@ aiida_aurora
 AiiDA plugin for the Aurora platform.
 """
 
-__version__ = "0.3.2"
+__version__ = "0.4.0"
