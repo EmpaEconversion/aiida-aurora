@@ -12,7 +12,7 @@ def validate_inputs(inputs, ctx=None):
     """Validate the inputs of the entire input namespace."""
     error_message = ''
 
-    reference_keys = set(inputs['protocols'].keys())
+    reference_keys = set(inputs['protocol_order'])
     for namekey in inputs['control_settings'].keys():
 
         if namekey not in reference_keys:
@@ -47,6 +47,12 @@ class CyclingSequenceWorkChain(WorkChain):
             "tomato_code",
             valid_type=orm.Code,
             help="Tomato code to use.",
+        )
+
+        spec.input(
+            "protocol_order",
+            valid_type=orm.List,
+            help="List of experiment protocol names in order of execution.",
         )
 
         spec.input_namespace(
@@ -95,8 +101,8 @@ class CyclingSequenceWorkChain(WorkChain):
         )
 
     def setup_workload(self):
-        """Take the inputs and wrap them together."""
-        self.worksteps_keynames = list(self.inputs['protocols'].keys())
+        """Create an ordered list of protocol step names."""
+        self.worksteps_keynames = list(self.inputs["protocol_order"])
 
     def has_steps_remaining(self):
         """Check if there is any remaining step."""
