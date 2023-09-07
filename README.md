@@ -76,6 +76,7 @@ MIT
 
 ## Contact
 
-- Francisco F. Ramirez (ramirezfranciscof@gmail.com)
 - Edan Bainglass (edan.bainglass@psi.ch)
+- Francisco F. Ramirez (ramirezfranciscof@gmail.com)
+- Loris Ercole (loris.ercole@gmail.com)
 - Giovanni Pizzi (giovanni.pizzi@psi.ch)
