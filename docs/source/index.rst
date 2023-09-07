@@ -30,7 +30,7 @@ If you use AiiDA for your research, please cite the following work:
 
 For information concerning ``aiida-aurora``, please contact:
 
- - Francisco F. Ramirez (francisco.ramirez@epfl.ch)
+ - Francisco F. Ramirez (ramirezfranciscof@gmail.com)
  - Edan Bainglass (edan.bainglass@psi.ch)
  - Giovanni Pizzi (giovanni.pizzi@psi.ch)
 
