@@ -155,7 +155,7 @@ class CapacityAnalyzer(Analyzer):
         Q = self.capacities[-1]
         Qt = self.threshold * Qs
 
-        message = f"cycle #{n} : {Q = :.2f} mAh ({Qs / Q * 100:.1f}%)"
+        message = f"cycle #{n} : {Q = :.2f} mAh ({Q / Qs * 100:.1f}%)"
 
         if Q < Qt:
             message += f" : {(Qt - Q) / Qt * 100:.1f}% below threshold"
