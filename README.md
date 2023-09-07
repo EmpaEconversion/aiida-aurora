@@ -74,6 +74,10 @@ See the [developer guide](http://aiida-aurora.readthedocs.io/en/latest/developer
 
 MIT
 
+## Acknowledgements
+
+This project was supported by the Open Research Data Program of the ETH Board.
+
 ## Contact
 
 - Edan Bainglass (edan.bainglass@psi.ch)

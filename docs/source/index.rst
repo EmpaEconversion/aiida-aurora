@@ -37,6 +37,10 @@ For information concerning ``aiida-aurora``, please contact:
 
 For questions concerning ``aiida``, please use the `AiiDA mailing list <http://www.aiida.net/mailing-list/>`_
 
+Acknowledgements
+================
+
+This project was supported by the Open Research Data Program of the ETH Board.
 
 Indices and tables
 ==================
