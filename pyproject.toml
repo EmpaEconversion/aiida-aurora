@@ -9,8 +9,8 @@ name = "aiida-aurora"
 dynamic = ["version"] # read from aiida_aurora/__init__.py
 description = "AiiDA plugin for the Aurora platform."
 authors = [
-    { name = "Loris Ercole", email = "loris.ercole@epfl.ch" },
-    { name = "Francisco F. Ramirez", email = "francisco.ramirez@epfl.ch" },
+    { name = "Loris Ercole", email = "loris.ercole@gmail.com" },
+    { name = "Francisco F. Ramirez", email = "ramirezfranciscof@gmail.com" },
     { name = "Edan Bainglass", email = "edan.bainglass@psi.ch" },
     { name = "Giovanni Pizzi", email = "giovanni.pizzi@psi.ch" },
 ]

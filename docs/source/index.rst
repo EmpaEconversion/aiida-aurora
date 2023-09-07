@@ -30,12 +30,17 @@ If you use AiiDA for your research, please cite the following work:
 
 For information concerning ``aiida-aurora``, please contact:
 
- - Francisco F. Ramirez (francisco.ramirez@epfl.ch)
  - Edan Bainglass (edan.bainglass@psi.ch)
+ - Francisco F. Ramirez (ramirezfranciscof@gmail.com)
+ - Loris Ercole (loris.ercole@gmail.com)
  - Giovanni Pizzi (giovanni.pizzi@psi.ch)
 
 For questions concerning ``aiida``, please use the `AiiDA mailing list <http://www.aiida.net/mailing-list/>`_
 
+Acknowledgements
+================
+
+This project was supported by the Open Research Data Program of the ETH Board.
 
 Indices and tables
 ==================
