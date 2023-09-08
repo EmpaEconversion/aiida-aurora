@@ -3,7 +3,7 @@ from typing import Dict, Optional, Tuple
 
 from aiida.orm import CalcJobNode, QueryBuilder, RemoteData, SinglefileData
 
-from aiida_aurora.schemas.battery import BatterySample
+from aiida_aurora.data import BatterySampleData
 from aiida_aurora.utils.parsers import get_data_from_raw, get_data_from_results
 
 
@@ -37,7 +37,7 @@ def cycling_analysis(node: CalcJobNode) -> Tuple[dict, str]:
 
     report = f"CalcJob:   <{node.pk}> '{node.label}'\n"
 
-    sample: BatterySample = node.inputs.battery_sample
+    sample: BatterySampleData = node.inputs.battery_sample
     report += f"Sample:    {sample.label}\n"
 
     report += "Monitored: "
@@ -48,7 +48,10 @@ def cycling_analysis(node: CalcJobNode) -> Tuple[dict, str]:
     else:
         report += "False\n"
 
-    data, analysis = process_data(node)
+    try:
+        data, analysis = process_data(node)
+    except Exception as err:
+        data, analysis = {}, f"*** ERROR ***\n\n{str(err)}"
 
     return (data, f"{report}\n{analysis}")
 
