@@ -135,11 +135,15 @@ class CyclingSequenceWorkChain(WorkChain):
             inputs['monitors'] = self.inputs.monitor_settings[current_keyname]
 
         running = self.submit(CyclerCalcjob, **inputs)
+        sample_name = self.inputs.battery_sample.attributes["metadata"]["name"]
+        running.label = f"{current_keyname} | {sample_name}"
 
         if has_monitors:
             running.set_extra('monitored', True)
         else:
             running.set_extra('monitored', False)
+
+        orm.load_group("CalcJobs").add_nodes(running)
 
         self.report(f'launching CyclerCalcjob<{running.pk}>')
         return ToContext(subprocesses=append_(running))
