@@ -17,8 +17,11 @@ def get_data_from_raw(jsdata):
     Ewe = np.array([ts["raw"]["Ewe"]["n"] for ts in raw_data])
     I = np.array([ts["raw"]["I"]["n"] for ts in raw_data])
 
-    # find indices of sign changes in I
+    # find half-cycle markers
+    # add last point if not already a marker
     idx = np.where(np.diff(np.sign(I)) != 0)[0]
+    if (final := len(I) - 1) not in idx:
+        idx = np.append(idx, final)
 
     # integrate and store charge and discharge currents
     Qc, Qd = [], []
@@ -54,8 +57,11 @@ def get_data_from_results(array_node):
     Ewe = array_node.get_array('step0_Ewe_n')
     I = array_node.get_array('step0_I_n')
 
-    # find indices of sign changes in I
+    # find half-cycle markers
+    # add last point if not already a marker
     idx = np.where(np.diff(np.sign(I)) != 0)[0]
+    if (final := len(I) - 1) not in idx:
+        idx = np.append(idx, final)
 
     # integrate and store charge and discharge currents
     Qc, Qd = [], []
