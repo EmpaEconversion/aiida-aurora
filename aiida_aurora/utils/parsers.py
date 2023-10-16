@@ -24,6 +24,8 @@ def get_data_from_raw(jsdata):
     Qc, Qd = [], []
     for ii in range(len(idx) - 1):
         i0, ie = idx[ii], idx[ii + 1]
+        if ie - i0 < 10:
+            continue
         q = np.trapz(I[i0:ie], t[i0:ie])
         if q > 0:
             Qc.append(q)
@@ -59,6 +61,8 @@ def get_data_from_results(array_node):
     Qc, Qd = [], []
     for ii in range(len(idx) - 1):
         i0, ie = idx[ii], idx[ii + 1]
+        if ie - i0 < 10:
+            continue
         q = np.trapz(I[i0:ie], t[i0:ie])
         if q > 0:
             Qc.append(q)
