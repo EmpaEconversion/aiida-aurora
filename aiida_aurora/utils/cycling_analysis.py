@@ -1,5 +1,9 @@
+from __future__ import annotations
+
 import json
-from typing import Dict, Optional, Tuple
+
+from pandas import DataFrame
+from pandas.io.formats.style import Styler
 
 from aiida.orm import CalcJobNode, QueryBuilder, RemoteData, SinglefileData
 
@@ -7,7 +11,7 @@ from aiida_aurora.data import BatterySampleData
 from aiida_aurora.utils.parsers import get_data_from_raw, get_data_from_results
 
 
-def cycling_analysis(node: CalcJobNode) -> Tuple[dict, str]:
+def cycling_analysis(node: CalcJobNode) -> tuple[dict, str, DataFrame]:
     """Perform post-processing of cycling experiments results.
 
     Used by the frontend Aurora app for plotting.
@@ -23,7 +27,7 @@ def cycling_analysis(node: CalcJobNode) -> Tuple[dict, str]:
 
     Returns
     -------
-    `Tuple[dict, str]`
+    `tuple[dict, str, DataFrame]`
         Post-processed data and an analysis report.
 
     Raises
@@ -35,28 +39,28 @@ def cycling_analysis(node: CalcJobNode) -> Tuple[dict, str]:
     if node.process_type != "aiida.calculations:aurora.cycler":
         raise TypeError("`node` is not a `BatteryCyclerExperiment`")
 
-    report = f"CalcJob:   <{node.pk}> '{node.label}'\n"
+    log = f"CalcJob:   <{node.pk}> '{node.label}'\n"
 
     sample: BatterySampleData = node.inputs.battery_sample
-    report += f"Sample:    {sample.label}\n"
+    log += f"Sample:    {sample.label}\n"
 
-    report += "Monitored: "
+    log += "Monitored: "
 
     if monitors := get_monitors(node):
-        report += "True\n"
-        report += add_monitor_details(monitors)
+        log += "True"
+        log += add_monitor_details(monitors)
     else:
-        report += "False\n"
+        log += "False"
 
     try:
-        data, analysis = process_data(node)
+        data, warning, raw = process_data(node)
     except Exception as err:
-        data, analysis = {}, f"*** ERROR ***\n\n{str(err)}"
+        data, warning, raw = {}, f"*** ERROR ***\n\n{str(err)}", None
 
-    return (data, f"{report}\n{analysis}")
+    return (data, f"{log}\n{warning}", raw)
 
 
-def get_monitors(node: CalcJobNode) -> Dict[str, dict]:
+def get_monitors(node: CalcJobNode) -> dict[str, dict]:
     """Fetch the monitor dictionary.
 
     The function is backwards compatible, capable of fetching the
@@ -72,7 +76,7 @@ def get_monitors(node: CalcJobNode) -> Dict[str, dict]:
 
     Returns
     -------
-    `Dict[str, dict]`
+    `dict[str, dict]`
         A dictionary of monitors.
     """
 
@@ -85,7 +89,7 @@ def get_monitors(node: CalcJobNode) -> Dict[str, dict]:
     return convert_to_new_monitor_format(monitor) if monitor else {}
 
 
-def get_node_monitor_calcjob(node: CalcJobNode) -> Optional[CalcJobNode]:
+def get_node_monitor_calcjob(node: CalcJobNode) -> CalcJobNode | None:
     """Fetch the monitor calcjob associated with the calculation
     `node`.
 
@@ -99,7 +103,7 @@ def get_node_monitor_calcjob(node: CalcJobNode) -> Optional[CalcJobNode]:
 
     Returns
     -------
-    `Optional[CalcJobNode]`
+    `CalcJobNode | None`
         The associated monitor calcjob node, `None` if not found.
     """
 
@@ -134,7 +138,7 @@ def get_node_monitor_calcjob(node: CalcJobNode) -> Optional[CalcJobNode]:
     return results[0] if results else None
 
 
-def convert_to_new_monitor_format(monitor: CalcJobNode) -> Dict[str, dict]:
+def convert_to_new_monitor_format(monitor: CalcJobNode) -> dict[str, dict]:
     """Convert monitor calcjob attributes to AiiDA 2.x format.
 
     For more details, see
@@ -148,7 +152,7 @@ def convert_to_new_monitor_format(monitor: CalcJobNode) -> Dict[str, dict]:
 
     Returns
     -------
-    `Dict[str, dict]`
+    `dict[str, dict]`
         The formatted monitor dictionary.
     """
 
@@ -182,7 +186,7 @@ def convert_to_new_monitor_format(monitor: CalcJobNode) -> Dict[str, dict]:
     }
 
 
-def add_monitor_details(monitors: Dict[str, dict]) -> str:
+def add_monitor_details(monitors: dict[str, dict]) -> str:
     """Return monitor details.
 
     Details include the following:
@@ -194,7 +198,7 @@ def add_monitor_details(monitors: Dict[str, dict]) -> str:
 
     Parameters
     ----------
-    `monitors` : `Dict[str, dict]`
+    `monitors` : `dict[str, dict]`
         A dictionary of monitors.
 
     Returns
@@ -207,9 +211,7 @@ def add_monitor_details(monitors: Dict[str, dict]) -> str:
 
     for label, params in monitors.items():
         details += f"\nMonitor:              {label}\n"
-        entry_point = params.get("entry_point", "aiida-calcmonitor plugin")
         refresh_rate = params.get("minimum_poll_interval", 600)
-        details += f"  Entry point:        {entry_point}\n"
         details += f"  Interval (s):       {refresh_rate}\n"
 
         if "kwargs" in params:
@@ -255,7 +257,7 @@ def add_monitor_settings(
     return _settings
 
 
-def process_data(node: CalcJobNode) -> Tuple[dict, str]:
+def process_data(node: CalcJobNode) -> tuple[dict, str, Styler | str]:
     """Analyze the results of the cycling experiment.
 
     The analysis is performed on the results `ArrayNode`, if one
@@ -272,20 +274,20 @@ def process_data(node: CalcJobNode) -> Tuple[dict, str]:
 
     Returns
     -------
-    `Tuple[dict, str]`
-        Post-processed data and an analysis report.
+    `tuple[dict, str, Styler | str]`
+        Post-processed data, warning, and analysis | error message.
     """
 
     if node.process_state and "finished" not in node.process_state.value:
-        return {}, f"Job terminated with message '{node.process_status}'"
+        return {}, f"Job terminated with message '{node.process_status}'", ""
 
-    report = ""
+    warning = ""
 
     if node.exit_status:
-        report += "WARNING: "
+        warning += "WARNING: "
         generic = "job killed by monitor"
-        report += f"{node.exit_message}" if node.exit_message else generic
-        report += "\n\n"
+        warning += f"{node.exit_message}" if node.exit_message else generic
+        warning += "\n\n"
 
     if "results" in node.outputs:
         data = get_data_from_results(node.outputs.results)
@@ -298,10 +300,7 @@ def process_data(node: CalcJobNode) -> Tuple[dict, str]:
     else:
         data = {}
 
-    # TODO extract data summary/statistics
-    report += add_analysis(data)
-
-    return data, report
+    return data, warning, add_analysis(data)
 
 
 def get_data_from_file(source: SinglefileData) -> dict:
@@ -347,7 +346,7 @@ def get_data_from_remote(source: RemoteData) -> dict:
         return {}
 
 
-def add_analysis(data: dict) -> str:
+def add_analysis(data: dict) -> Styler | str:
     """Return analysis details.
 
     Parameters
@@ -357,8 +356,29 @@ def add_analysis(data: dict) -> str:
 
     Returns
     -------
-    `str`
+    `Styler | str`
         The details of the analysis.
     """
-    # TODO replace str(data) with something insightful, and clean!
-    return str(data) if data else "ERROR! Failed to find or parse output"
+
+    if data:
+
+        COLUMNS = {
+            "time": "Time (s)",
+            "I": "I (A)",
+            "Ewe": "Ewe (V)",
+        }
+
+        selected_keys = {key: data[key] for key in COLUMNS}
+        df = DataFrame(selected_keys).rename(columns=COLUMNS)
+
+        return df.style.set_properties(width="100vw").set_table_styles([
+            dict(
+                selector="th, td",
+                props=[
+                    ("text-align", "center"),
+                ],
+            ),
+        ]).hide(axis="index")
+
+    else:
+        return "ERROR! Failed to find or parse output"
