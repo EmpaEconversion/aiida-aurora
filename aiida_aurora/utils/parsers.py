@@ -65,6 +65,7 @@ def post_process_data(t: np.ndarray, Ewe: np.ndarray, I: np.ndarray) -> dict:
         'I': I,
         'cn': len(Qd),
         'time-cycles': t[idx[2::2]],
+        'Q': cumtrapz(I, t, axis=0, initial=0) / 3.6,
         'Qd': np.array(Qd) / 3.6,
         'Qc': np.array(Qc) / 3.6,
     }
