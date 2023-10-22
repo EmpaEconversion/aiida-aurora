@@ -31,7 +31,6 @@ dependencies = [
     "aiida-ssh2win>=0.2",
     "dgbowl-schemas>=111,<=113",
     "pydantic<2.0",
-    "matplotlib",
     "pandas~=1.5",
 ]
 
