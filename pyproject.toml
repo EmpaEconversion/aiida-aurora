@@ -25,7 +25,7 @@ classifiers = [
     "Framework :: AiiDA"
 ]
 keywords = ["aiida", "plugin", "aurora"]
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = [
     "aiida-core>=2.0,<3",
     "aiida-ssh2win>=0.2",
