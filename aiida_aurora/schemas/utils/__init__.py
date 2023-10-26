@@ -40,7 +40,7 @@ def _make_formatted_dict(my_dict, key_arr, val):
         key = key_arr[i]
         if key not in current:
             if i == len(key_arr) - 1:
-                current[key] = val
+                current[key] = None if val == 'None' or isna(val) else val
             else:
                 current[key] = {}
         else:
@@ -59,7 +59,7 @@ def pd_dataframe_to_formatted_json(df, sep="."):
     result = []
     for _, row in df.iterrows():
         parsed_row = {}
-        for idx, val in row.iteritems():
+        for idx, val in row.items():
             keys = idx.split(sep)
             parsed_row = _make_formatted_dict(parsed_row, keys, val)
         result.append(parsed_row)
@@ -79,17 +79,19 @@ def dict_to_formatted_json(series, sep="."):
 
 def extract_schema_types(model, sep="."):
     """Convert a pydantic schema into a nested dictionary containing types."""
-    SCHEMA_TYPES = {'string': str, 'integer': int, 'number': float}
+    SCHEMA_TYPES = {
+        'string': str,
+        'integer': int,
+        'number': float,
+        'array': object,
+        'boolean': bool,
+    }
     schema_dic = {}
     for name, sdic in model.schema()['properties'].items():
         if '$ref' in sdic:
-            # print(f"  {name} is a class {sdic['$ref']}")
-            sub_schema = extract_schema_types(
-                getattr(battery_schemas, sdic['$ref'].split('/')[-1])
-            )  # call extract_schema for the $ref class
+            sub_schema = extract_schema_types(getattr(battery_schemas, sdic['$ref'].split('/')[-1]))
             for key, value in sub_schema.items():
                 schema_dic[f'{name}.{key}'] = value
         elif 'type' in sdic:
-            # print(f"{name} is of type {sdic['type']}")
             schema_dic[name] = SCHEMA_TYPES[sdic['type']]
     return schema_dic

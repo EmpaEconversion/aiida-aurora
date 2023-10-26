@@ -3,7 +3,10 @@ from pydantic import BaseModel
 from aiida_aurora.schemas.battery import BatterySample
 
 
-def batterysample_to_sample_0(batsample: BatterySample, SampleSchema: BaseModel):
+def batterysample_to_sample_0(
+    sample: BatterySample,
+    SampleSchema: BaseModel,
+) -> BaseModel:
     """
     Convert a BatterySample into a Sample.
 
@@ -11,15 +14,13 @@ def batterysample_to_sample_0(batsample: BatterySample, SampleSchema: BaseModel)
         [0.1, 0.2]
     """
 
-    if not isinstance(batsample, BatterySample):
-        if isinstance(batsample, dict):
-            batsample = BatterySample(**batsample)
+    if not isinstance(sample, BatterySample):
+        if isinstance(sample, dict):
+            sample = BatterySample(**sample)
         else:
             raise TypeError()
-    # if batsample.capacity.units == "mAh":
-    # capacity = float(batsample.capacity.nominal) * 0.001
-    # elif batsample.capacity.units == "Ah":
-    # capacity = float(batsample.capacity.nominal)
-
-    sample = SampleSchema(name=batsample.metadata.name, capacity=batsample.capacity.nominal)
-    return sample
+    C = sample.specs.capacity.nominal
+    return SampleSchema(
+        name=sample.metadata.name,
+        capacity=C if sample.specs.capacity.units == "Ah" else C * 0.001,
+    )

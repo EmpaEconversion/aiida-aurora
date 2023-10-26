@@ -54,6 +54,7 @@ class BatterySampleData(Dict):  # pylint: disable=too-many-ancestors
         # Manual fix to convert date-times to ISO string format
         # TODO integrate this into the data schema
         d["metadata"]["creation_datetime"] = d["metadata"]["creation_datetime"].isoformat()
+        d["metadata"].pop("groups", None)
         return d
 
     def get_json(self):

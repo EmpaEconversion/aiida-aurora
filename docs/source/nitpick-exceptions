@@ -20,6 +20,7 @@ py:class dgbowl_schemas.tomato.payload_0_2.tomato.Tomato
 
 py:class pydantic.main.BaseModel
 py:class pydantic.generics.GenericModel
+py:class pydantic.types.PositiveInt
 py:class pydantic.types.PositiveFloat
 py:class pydantic.types.NonNegativeFloat
 
