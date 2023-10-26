@@ -1,8 +1,9 @@
 from aiida import orm
 from aiida.engine import ToContext, WorkChain, append_, while_
-from aiida.plugins import CalculationFactory, DataFactory
+from aiida.plugins import DataFactory
 
-CyclerCalcjob = CalculationFactory('aurora.cycler')
+from aiida_aurora.calculations import BatteryCyclerExperiment
+
 CyclingSpecsData = DataFactory('aurora.cyclingspecs')
 BatterySampleData = DataFactory('aurora.batterysample')
 TomatoSettingsData = DataFactory('aurora.tomatosettings')
@@ -53,6 +54,12 @@ class CyclingSequenceWorkChain(WorkChain):
             "protocol_order",
             valid_type=orm.List,
             help="List of experiment protocol names in order of execution.",
+        )
+
+        spec.input(
+            "group_label",
+            valid_type=orm.Str,
+            help="A label prefix for grouping experiments.",
         )
 
         spec.input_namespace(
@@ -120,33 +127,46 @@ class CyclingSequenceWorkChain(WorkChain):
 
     def run_cycling_step(self):
         """Run the next cycling step."""
-        current_keyname = self.worksteps_keynames.pop(0)
+        protocol_name = self.worksteps_keynames.pop(0)
 
         inputs = {
             'code': self.inputs.tomato_code,
             'battery_sample': self.inputs.battery_sample,
-            'protocol': self.inputs.protocols[current_keyname],
-            'control_settings': self.inputs.control_settings[current_keyname],
+            'protocol': self.inputs.protocols[protocol_name],
+            'control_settings': self.inputs.control_settings[protocol_name],
         }
 
-        has_monitors = current_keyname in self.inputs.monitor_settings
+        has_monitors = protocol_name in self.inputs.monitor_settings
 
         if has_monitors:
-            inputs['monitors'] = self.inputs.monitor_settings[current_keyname]
+            inputs['monitors'] = self.inputs.monitor_settings[protocol_name]
 
-        running = self.submit(CyclerCalcjob, **inputs)
+        running = self.submit(BatteryCyclerExperiment, **inputs)
         sample_name = self.inputs.battery_sample.attributes["metadata"]["name"]
-        running.label = f"{current_keyname} | {sample_name}"
+        running.label = f"{protocol_name} | {sample_name}"
 
         if has_monitors:
             running.set_extra('monitored', True)
         else:
             running.set_extra('monitored', False)
 
-        orm.load_group("CalcJobs").add_nodes(running)
+        workflow_group = self.inputs.group_label.value
+        experiment_group = f"{workflow_group}/{protocol_name}"
+        for group in (
+            "all-experiments",
+            protocol_name,
+            workflow_group,
+            experiment_group,
+        ):
+            self.add_to_group(running, group)
 
-        self.report(f'launching CyclerCalcjob<{running.pk}>')
+        self.report(f'launching BatteryCyclerExperiment<{running.pk}>')
         return ToContext(subprocesses=append_(running))
+
+    def add_to_group(self, node: BatteryCyclerExperiment, label: str) -> None:
+        """docstring"""
+        group_label = f"aurora/experiments/{label}"
+        orm.Group.collection.get_or_create(group_label)[0].add_nodes(node)
 
     def gather_results(self):
         """Gather the results from all cycling steps."""
