@@ -120,30 +120,31 @@ class TomatoParser(Parser):
             The name of each array is:  `'step{step_number}_{raw_quantity_name}_{identifier}'`
 
         """
-        array_dic = {}
-        for imstep, mstep in enumerate(data_dic["steps"]):  # method step
-            raw_qty_names = list(mstep["data"][0]["raw"].keys())
-            if logger:
-                logger.debug(f"parse_tomato_results: step {imstep}: {list(raw_qty_names)}")
-            for raw_qty_name in raw_qty_names:
-                # substitute any special character with underscores
-                raw_qty_name_cleaned = re.sub("[^0-9a-zA-Z_]", "_", raw_qty_name)
-                if isinstance(mstep["data"][0]["raw"][raw_qty_name], dict):
-                    for identifier in mstep["data"][0]["raw"][raw_qty_name].keys():
-                        array_dic[f"step{imstep}_{raw_qty_name_cleaned}_{identifier}"] = np.array([
-                            step["raw"][raw_qty_name][identifier] for step in mstep["data"]
-                        ])
-                else:
-                    array_dic[f"step{imstep}_{raw_qty_name_cleaned}"] = np.array([
-                        step["raw"][raw_qty_name] for step in mstep["data"]
-                    ])
-            array_dic[f"step{imstep}_uts"] = np.array([step["uts"] for step in mstep["data"]])
+
+        parsed = {}
+
+        data = data_dic["steps"][0]["data"]
+
+        keys = ["Ewe", "I"]  # HACK hardcoded
+        fill = {"n": np.nan, "s": np.nan, "u": ""}
+
         if logger:
-            logger.debug(f"parse_tomato_results: arrays stored: {list(array_dic.keys())}")
+            logger.debug(f"parse_tomato_results: storing {keys}")
+
+        for key in keys:
+            clean_key = re.sub("[^0-9a-zA-Z_]", "_", key)  # TODO necessary?
+            for id in ("n", "s", "u"):
+                values = [step["raw"].get(key, fill)[id] for step in data]
+                parsed[f"step0_{clean_key}_{id}"] = np.array(values)
+
+        parsed["step0_uts"] = np.array([step["uts"] for step in data])
 
         node = ArrayData()
-        for key, value in array_dic.items():
+        for key, value in parsed.items():
             node.set_array(key, value)
             node.set_attribute_many(data_dic["metadata"])
+
+        if logger:
+            logger.debug(f"parse_tomato_results: {list(parsed.keys())} stored")
 
         return node

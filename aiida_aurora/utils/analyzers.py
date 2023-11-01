@@ -134,8 +134,7 @@ class CapacityAnalyzer(Analyzer):
         """
         try:
             data = get_data_from_raw(snapshot)
-            capacities = data['Qd'] if self.is_discharge else data['Qc']
-            return capacities / 3.6  # As -> mAh
+            return data['Qd'] if self.is_discharge else data['Qc']
         except KeyError as err:
             self.logger.error(f"missing '{str(err)}' in snapshot")
         return []
