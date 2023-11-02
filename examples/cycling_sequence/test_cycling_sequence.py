@@ -18,15 +18,15 @@ def generate_test_inputs():
     nodes_dict = {}
 
     nodes_dict['sample'] = BatterySampleData({
-        'manufacturer':
+        'specs.manufacturer':
         'fake_maufacturer',
-        'composition':
+        'specs.composition':
         dict(description='C|E|A'),
-        'form_factor':
+        'specs.case':
         'fake_form',
-        'capacity':
+        'specs.capacity':
         dict(nominal=1.0, units='Ah'),
-        'battery_id':
+        'id':
         666,
         'metadata':
         dict(

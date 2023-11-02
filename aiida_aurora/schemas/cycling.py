@@ -584,8 +584,3 @@ class ElectroChemSequence(BaseModel):
         if i < self.n_steps - 1:
             j = i + 1
             self.method[i], self.method[j] = self.method[j], self.method[i]
-
-    def __eq__(self, other: object) -> bool:
-        if not isinstance(other, ElectroChemSequence):
-            return NotImplemented
-        return self.name == other.name
