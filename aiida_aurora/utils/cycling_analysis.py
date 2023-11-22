@@ -339,7 +339,7 @@ def get_data_from_remote(source: RemoteData) -> dict:
         The post-processed data dictionary.
     """
     try:
-        remote_path = source.get_attribute("remote_path")
+        remote_path = source.attributes["remote_path"]
         with open(f"{remote_path}/snapshot.json") as file:
             return get_data_from_file(file)
     except Exception:
