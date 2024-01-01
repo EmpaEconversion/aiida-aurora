@@ -117,13 +117,34 @@ class CyclingSequenceWorkChain(WorkChain):
 
     def inspect_cycling_step(self):
         """Verify that the last cycling step finished successfully."""
-        last_subprocess = self.ctx.subprocesses[-1]
 
-        if not last_subprocess.is_finished_ok:
-            pkid = last_subprocess.pk
-            stat = last_subprocess.exit_status
-            self.report(f'Cycling substep <pk={pkid}> failed with exit status {stat}')
+        last_step: orm.CalcJobNode = self.ctx.subprocesses[-1]
+
+        if not last_step.is_finished_ok:
+
+            pk = last_step.pk
+            status = last_step.exit_status
+            self.report(f"Process <{pk=}> failed with exit status {status}")
+
+            # not killed by monitor
+            if "🍅" in last_step.base.extras.get("flag", ""):
+
+                exit_codes = BatteryCyclerExperiment.exit_codes
+
+                if status == exit_codes.WARNING_COMPLETED_CANCELLED.status:
+                    # killed by tomato
+                    last_step.base.extras.set("flag", "🚫")
+                else:
+                    # catastrophic error
+                    last_step.base.extras.set("flag", "🚨")
+
             return self.exit_codes.ERROR_IN_CYCLING_STEP
+
+        last_step.base.extras.set("flag", "✅")
+
+        for extra in ("status", "snapshot"):
+            if extra in last_step.base.extras:
+                last_step.base.extras.delete(extra)
 
     def run_cycling_step(self):
         """Run the next cycling step."""
@@ -136,19 +157,24 @@ class CyclingSequenceWorkChain(WorkChain):
             'control_settings': self.inputs.control_settings[protocol_name],
         }
 
-        has_monitors = protocol_name in self.inputs.monitor_settings
+        has_monitors = bool(self.inputs.monitor_settings[protocol_name])
 
         if has_monitors:
             inputs['monitors'] = self.inputs.monitor_settings[protocol_name]
 
-        running = self.submit(BatteryCyclerExperiment, **inputs)
+        running: orm.CalcJobNode = self.submit(
+            BatteryCyclerExperiment,
+            **inputs,
+        )
+
         sample_name = self.inputs.battery_sample.attributes["metadata"]["name"]
         running.label = f"{protocol_name} | {sample_name}"
 
-        if has_monitors:
-            running.set_extra('monitored', True)
-        else:
-            running.set_extra('monitored', False)
+        running.base.extras.set_many({
+            "monitored": has_monitors,
+            "flag": "🍅",
+            "status": "",
+        })
 
         workflow_group = self.inputs.group_label.value
         experiment_group = f"{workflow_group}/{protocol_name}"

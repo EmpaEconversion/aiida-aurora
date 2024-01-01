@@ -1,34 +1,14 @@
-from itertools import groupby
-from logging import LoggerAdapter
-from typing import Optional
+from __future__ import annotations
 
-from aiida.common.log import AIIDA_LOGGER, LOG_LEVEL_REPORT
+import numpy as np
 
 from .parsers import get_data_from_raw
 
 
 class Analyzer:
-    """Base class for all analyzers.
+    """Base class for all analyzers."""
 
-    Attributes
-    ==========
-    `logger` : `Union[AiidaLoggerType, LoggerAdapter]`
-        The associated logger.
-    """
-
-    logger = AIIDA_LOGGER.getChild("monitor")
-
-    def set_logger(self, logger: LoggerAdapter) -> None:
-        """Set the analyzer logger.
-
-        Parameters
-        ----------
-        `logger` : `LoggerAdapter`
-            The logger of the analyzed calculation node.
-        """
-        self.logger = logger
-
-    def analyze(self, snapshot: dict) -> Optional[str]:
+    def analyze(self, snapshot: dict) -> None:
         """Analyze the experiment snapshot against a condition.
 
         Condition is defined in subclass analyzers.
@@ -37,12 +17,6 @@ class Analyzer:
         ----------
         `snapshot` : `dict`
             The loaded snapshot dictionary.
-
-        Returns
-        -------
-        `Optional[str]`
-            A string if a defined condition has been met,
-            `None` otherwise.
         """
         raise NotImplementedError
 
@@ -67,6 +41,7 @@ class CapacityAnalyzer(Analyzer):
         check_type="discharge_capacity",
         threshold=0.8,
         consecutive_cycles=2,
+        keep_last=10,
     ) -> None:
         """`CapacityAnalyzer` constructor.
 
@@ -80,6 +55,8 @@ class CapacityAnalyzer(Analyzer):
         `consecutive_cycles` : `int`
             The number of required consecutive cycles,
             `2` by default.
+        `keep_last` : `int`
+            The number of cycles to keep in snapshot.
 
         Raises
         ------
@@ -93,8 +70,13 @@ class CapacityAnalyzer(Analyzer):
         self.threshold = threshold
         self.consecutive = consecutive_cycles
         self.is_discharge = check_type == "discharge_capacity"
+        self.keep_last = keep_last
 
-    def analyze(self, snapshot: dict) -> Optional[str]:
+        self.flag = ""
+        self.status = ""
+        self.report = ""
+
+    def analyze(self, snapshot: dict) -> None:
         """Analyze the snapshot.
 
         Check if capacity has fallen below threshold for required
@@ -104,84 +86,98 @@ class CapacityAnalyzer(Analyzer):
         ----------
         `snapshot` : `dict`
             The loaded snapshot dictionary.
-
-        Returns
-        -------
-        `Optional[str]`
-            If condition is met, an exit message, `None` otherwise.
         """
-        self.capacities = self._get_capacities(snapshot)
-        self.cycles = len(self.capacities)
-        return None if self.cycles < 1 else self._check_capacity()
+        self._extract_capacities(snapshot)
+        self._check_capacity()
+        self._truncate_snapshot()
 
     ###########
     # PRIVATE #
     ###########
 
-    def _get_capacities(self, snapshot: dict):
+    def _extract_capacities(self, snapshot: dict) -> None:
         """Post-process the snapshot to extract capacities.
 
         Parameters
         ----------
         `snapshot` : `dict`
             The loaded snapshot dictionary.
-
-        Returns
-        -------
-        `_type_`
-            A `numpy` array of capacities (in mAh), or empty list
-            if failed to process snapshot.
         """
         try:
-            data = get_data_from_raw(snapshot)
-            return data['Qd'] if self.is_discharge else data['Qc']
+            self.snapshot = get_data_from_raw(snapshot)
+            self.capacities = self.snapshot["Qd"] \
+                if self.is_discharge \
+                else self.snapshot["Qc"]
         except KeyError as err:
-            self.logger.error(f"missing '{str(err)}' in snapshot")
-        return []
+            self.report = f"missing '{str(err)}' in snapshot"
+            self.snapshot = {}
+            self.capacities = []
 
-    def _check_capacity(self) -> Optional[str]:
+    def _check_capacity(self) -> None:
         """Check if capacity has fallen below threshold for required
-        consecutive cycles.
+        consecutive cycles."""
 
-        Returns
-        -------
-        `Optional[str]`
-            If condition is met, an exit message, `None` otherwise.
-        """
+        if (n := len(self.capacities)) < 2:
+            self.report = "need at least two complete cycles"
+            return
 
-        n = self.cycles
         Qs = self.capacities[0]
-        Q = self.capacities[-1]
+        Q = self.capacities[-2]
         Qt = self.threshold * Qs
+        C_per = Q / Qs * 100
 
-        message = f"cycle #{n} : {Q = :.2f} mAh ({Q / Qs * 100:.1f}%)"
+        self.report = f"cycle #{n} : {Q = :.2f} mAh ({C_per:.1f}%)"
+        self.status = f"(cycle #{n} : C @ {C_per:.1f}%)"
 
         if Q < Qt:
-            message += f" : {(Qt - Q) / Qt * 100:.1f}% below threshold"
+            self.report += f" - {(Qt - Q) / Qt * 100:.1f}% below threshold"
 
-        self.logger.log(LOG_LEVEL_REPORT, message)
+        below_threshold = np.where(self.capacities < Qt)[0] + 1
+        consecutively_below = self._filter_consecutive(below_threshold)
 
-        below_threshold = self._count_cycles_below_threshold()
-        if below_threshold >= self.consecutive:
-            return f"Capacity below threshold ({Qt:.2f} mAh) " \
-                   f"for {below_threshold} cycles!"
+        if len(consecutively_below):
 
-        return None
+            cycles_str = str(consecutively_below).replace("'", "")
+            self.report += f" - cycles below threshold: {cycles_str}"
 
-    def _count_cycles_below_threshold(self) -> int:
-        """Count the number of consecutive cycles below threshold.
+            if consecutively_below[-1] == n:
+                self.flag = "🔴"
+            else:
+                self.flag = "🟡"
+
+    def _filter_consecutive(self, cycles: list[int]) -> list[int]:
+        """Return cycles below threshold for `x` consecutive cycles.
+
+        Parameters
+        ----------
+        `cycles` : `list[int]`
+            The cycles below threshold.
 
         Returns
         -------
-        `int`
-            The number of consecutive cycles below threshold.
+        `list[int]`
+            The cycles below threshold for `x` consecutive cycles.
         """
-        Qt = self.threshold * self.capacities[0]
-        return next(
-            (
-                len(list(group))  # cycle-count of first below-threshold group
-                for below, group in groupby(self.capacities < Qt)
-                if below
-            ),
-            0,
-        )
+        return [
+            cycle for i, cycle in enumerate(cycles)
+            if i >= self.consecutive - 1 and \
+            all(cycles[i - j] == cycle - j for j in range(1, self.consecutive))
+        ]
+
+    def _truncate_snapshot(self) -> None:
+        """Truncate the snapshot to user defined size."""
+
+        truncated = {}
+
+        size = min(self.keep_last, len(self.snapshot["cycle-number"]))
+
+        for key, value in self.snapshot.items():
+
+            if key in ("time", "I", "Ewe", "Q"):
+                index = self.snapshot["cycle-index"][-size]
+                truncated[key] = value[index:]
+
+            elif key in ("cycle-number", "Qc", "Qd", "Ec", "Ed"):
+                truncated[key] = value[-size:]
+
+        self.snapshot = truncated
