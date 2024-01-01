@@ -99,30 +99,41 @@ def post_process_data(t: np.ndarray, Ewe: np.ndarray, I: np.ndarray) -> dict:
     mask = I != 0  # filter out zero current
     t, Ewe, I = t[mask], Ewe[mask], I[mask]
 
+    Q = cumtrapz(I, t, axis=0, initial=0)
+
     # mark half-cycles (including first and last values)
     idx = np.where(np.diff(np.sign(I), prepend=0) != 0)[0]
     idx = np.append(idx, len(I))
 
-    # integrate and store charge and discharge currents
-    cycle_idx, Qc, Qd = [], [], []
+    # integrate and store charge/discharge capacities/energies
+    cycle_idx, Qc, Qd, Ec, Ed = [], [], [], [], []
+
     for ii in range(len(idx) - 1):
+
         i0, ie = idx[ii], idx[ii + 1]
+
         if ie - i0 < 10:
             continue
-        q = np.trapz(I[i0:ie], t[i0:ie])
-        if q > 0:
+
+        e = np.trapz(Ewe[i0:ie], Q[i0:ie])
+
+        if (q := np.trapz(I[i0:ie], t[i0:ie])) > 0:
             cycle_idx.append(i0)
             Qc.append(q)
+            Ec.append(e)
         else:
             Qd.append(abs(q))
+            Ed.append(abs(e))
 
     return {
-        "time": t,
-        "Ewe": Ewe,
-        "I": I,
+        "time": t,  # [s]
+        "Ewe": Ewe,  # [V]
+        "I": I,  # [A]
+        "Q": Q / 3.6,  # [mAh]
         "cycle-number": np.arange(len(Qd)),
         "cycle-index": np.array(cycle_idx),
-        "Q": cumtrapz(I, t, axis=0, initial=0) / 3.6,
-        "Qd": np.array(Qd) / 3.6,
-        "Qc": np.array(Qc) / 3.6,
+        "Qc": np.array(Qc) / 3.6,  # [mAh]
+        "Qd": np.array(Qd) / 3.6,  # [mAh]
+        "Ec": np.array(Ec) / 3600,  # [Wh]
+        "Ed": np.array(Ed) / 3600,  # [Wh]
     }
