@@ -104,13 +104,14 @@ def post_process_data(t: np.ndarray, Ewe: np.ndarray, I: np.ndarray) -> dict:
     idx = np.append(idx, len(I))
 
     # integrate and store charge and discharge currents
-    Qc, Qd = [], []
+    cycle_idx, Qc, Qd = [], [], []
     for ii in range(len(idx) - 1):
         i0, ie = idx[ii], idx[ii + 1]
         if ie - i0 < 10:
             continue
         q = np.trapz(I[i0:ie], t[i0:ie])
         if q > 0:
+            cycle_idx.append(i0)
             Qc.append(q)
         else:
             Qd.append(abs(q))
@@ -120,6 +121,7 @@ def post_process_data(t: np.ndarray, Ewe: np.ndarray, I: np.ndarray) -> dict:
         "Ewe": Ewe,
         "I": I,
         "cycle-number": np.arange(len(Qd)),
+        "cycle-index": np.array(cycle_idx),
         "Q": cumtrapz(I, t, axis=0, initial=0) / 3.6,
         "Qd": np.array(Qd) / 3.6,
         "Qc": np.array(Qc) / 3.6,
