@@ -6,6 +6,7 @@ py:class Logger
 
 py:class orm.ProcessNode
 py:class CalcJobNode
+py:class Transport
 
 py:class aiida_aurora.schemas.battery.Config
 py:class aiida_aurora.schemas.cycling.Config
