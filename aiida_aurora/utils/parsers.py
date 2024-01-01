@@ -119,7 +119,7 @@ def post_process_data(t: np.ndarray, Ewe: np.ndarray, I: np.ndarray) -> dict:
         "time": t,
         "Ewe": Ewe,
         "I": I,
-        "cn": len(Qd),
+        "cycle-number": np.arange(len(Qd)),
         "time-cycles": t[idx[2::2]],
         "Q": cumtrapz(I, t, axis=0, initial=0) / 3.6,
         "Qd": np.array(Qd) / 3.6,
