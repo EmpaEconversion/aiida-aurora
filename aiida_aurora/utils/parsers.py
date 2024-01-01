@@ -41,11 +41,12 @@ def get_data_from_results(array_node) -> dict:
 def post_process_data(t: np.ndarray, Ewe: np.ndarray, I: np.ndarray) -> dict:
     """docstring"""
 
-    # find half-cycle markers
-    # add last point if not already a marker
-    idx = np.where(np.diff(np.sign(I)) != 0)[0]
-    if (final := len(I) - 1) not in idx:
-        idx = np.append(idx, final)
+    mask = I != 0  # filter out zero current
+    t, Ewe, I = t[mask], Ewe[mask], I[mask]
+
+    # mark half-cycles (including first and last values)
+    idx = np.where(np.diff(np.sign(I), prepend=0) != 0)[0]
+    idx = np.append(idx, len(I))
 
     # integrate and store charge and discharge currents
     Qc, Qd = [], []
