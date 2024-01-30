@@ -49,9 +49,10 @@ repos:
     hooks:
       - id: flake8
         # E501 - line length limit
+        # E502 - backslash in brackets
         # E741 - ambiguous variable name, used sparsely when appropriate
         # F541 - f-string is missing placeholders
-        args: ["--ignore=E501,E741,F541"]
+        args: ["--ignore=E501,E502,E741,F541"]
         exclude: *exclude_files
 
   - repo: https://github.com/pre-commit/mirrors-mypy
