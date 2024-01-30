@@ -6,7 +6,7 @@
 # aiida-aurora
 
 AiiDA plugin for the Aurora project (autonomous robotic battery innovation platform).
-A collaboration between EPFL & Empa, within the BIG-MAP Stakeholder Initiative Call 2021.
+A collaboration between EPFL & Empa, within the BIG-MAP Stakeholder Initiative Call 2021-2023.
 
 ## Repository contents
 

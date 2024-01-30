@@ -109,11 +109,11 @@ class CyclingSequenceWorkChain(WorkChain):
 
     def setup_workload(self):
         """Create an ordered list of protocol step names."""
-        self.worksteps_keynames = list(self.inputs["protocol_order"])
+        self.ctx.steps = list(self.inputs["protocol_order"])
 
     def has_steps_remaining(self):
         """Check if there is any remaining step."""
-        return len(self.worksteps_keynames) > 0
+        return len(self.ctx.steps) > 0
 
     def inspect_cycling_step(self):
         """Verify that the last cycling step finished successfully."""
@@ -127,7 +127,7 @@ class CyclingSequenceWorkChain(WorkChain):
 
     def run_cycling_step(self):
         """Run the next cycling step."""
-        protocol_name = self.worksteps_keynames.pop(0)
+        protocol_name = self.ctx.steps.pop(0)
 
         inputs = {
             'code': self.inputs.tomato_code,
