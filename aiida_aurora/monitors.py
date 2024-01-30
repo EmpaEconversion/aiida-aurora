@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 from json import load
 from tempfile import NamedTemporaryFile
-from typing import Optional
 
+from aiida.common.log import LOG_LEVEL_REPORT
 from aiida.orm import CalcJobNode
 from aiida.transports import Transport
 
@@ -13,7 +15,7 @@ def monitor_capacity_threshold(
     transport: Transport,
     settings: dict,
     filename="snapshot.json",
-) -> Optional[str]:
+) -> str | None:
     """Retrieve and inspect snapshot to determine if capacity has
     fallen below threshold for several consecutive cycles.
 
@@ -48,7 +50,6 @@ def monitor_capacity_threshold(
     """
 
     analyzer = CapacityAnalyzer(**settings)
-    analyzer.set_logger(node.logger)
 
     try:
 
@@ -72,7 +73,26 @@ def monitor_capacity_threshold(
                 if not snapshot:
                     raise ValueError
 
-                return analyzer.analyze(snapshot)
+                analyzer.analyze(snapshot)
+
+                node.base.extras.set_many({
+                    "status": analyzer.status,
+                    "snapshot": analyzer.snapshot,
+                })
+
+                node.logger.log(LOG_LEVEL_REPORT, analyzer.report)
+
+                if node.base.extras.get("marked_for_death", False):
+
+                    node.base.extras.set("flag", "☠️")
+
+                    if "snapshot" in node.base.extras:
+                        node.base.extras.delete("snapshot")
+
+                    return "Job terminated by monitor per user request"
+
+                if analyzer.flag:
+                    node.base.extras.set("flag", f"🍅{analyzer.flag}")
 
             except TypeError:
                 node.logger.error(f"'{filename}' not in dictionary format")

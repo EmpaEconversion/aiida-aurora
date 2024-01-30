@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 
+import numpy as np
 from pandas import DataFrame
 from pandas.io.formats.style import Styler
 
@@ -278,9 +279,6 @@ def process_data(node: CalcJobNode) -> tuple[dict, str, Styler | str]:
         Post-processed data, warning, and analysis | error message.
     """
 
-    if node.process_state and "finished" not in node.process_state.value:
-        return {}, f"Job terminated with message '{node.process_status}'", ""
-
     warning = ""
 
     if node.exit_status:
@@ -289,16 +287,19 @@ def process_data(node: CalcJobNode) -> tuple[dict, str, Styler | str]:
         warning += f"{node.exit_message}" if node.exit_message else generic
         warning += "\n\n"
 
-    if "results" in node.outputs:
-        data = get_data_from_results(node.outputs.results)
-    elif "raw_data" in node.outputs:
-        data = get_data_from_file(node.outputs.raw_data)
-    elif "retrieved" in node.outputs:
-        data = get_data_from_file(node.outputs.retrieved)
-    elif "remote_folder" in node.outputs:
-        data = get_data_from_remote(node.outputs.remote_folder)
+    if node.exit_status is None:
+        data = get_data_from_snapshot(node.base.extras.get("snapshot", {}))
     else:
-        data = {}
+        if "results" in node.outputs:
+            data = get_data_from_results(node.outputs.results)
+        elif "raw_data" in node.outputs:
+            data = get_data_from_file(node.outputs.raw_data)
+        elif "retrieved" in node.outputs:
+            data = get_data_from_file(node.outputs.retrieved)
+        elif "remote_folder" in node.outputs:
+            data = get_data_from_remote(node.outputs.remote_folder)
+        else:
+            data = {}
 
     return data, warning, add_analysis(data)
 
@@ -346,6 +347,11 @@ def get_data_from_remote(source: RemoteData) -> dict:
         return {}
 
 
+def get_data_from_snapshot(snapshot: dict) -> dict:
+    """docstring"""
+    return {k: np.array(v) for k, v in snapshot.items()}
+
+
 def add_analysis(data: dict) -> Styler | str:
     """Return analysis details.
 
@@ -381,4 +387,5 @@ def add_analysis(data: dict) -> Styler | str:
         ]).hide(axis="index")
 
     else:
+
         return "ERROR! Failed to find or parse output"
