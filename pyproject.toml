@@ -27,7 +27,7 @@ classifiers = [
 keywords = ["aiida", "plugin", "aurora"]
 requires-python = ">=3.9"
 dependencies = [
-    "aiida-core>=2.0,<3",
+    "aiida-core>=2.0,<2.5",
     "aiida-ssh2win>=0.2",
     "dgbowl-schemas==111",
     "pydantic<2.0",
