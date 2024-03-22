@@ -2,7 +2,7 @@
 STATUS: Providing the parameters as a dict with the specific parameter dict
 as a default is not allowing me to initialize the CyclingTechnique's with
 a normal dictionary (the parameters dict is not being correctly converted
-to the right type but to Generic[DataT] I think).
+to the right type but to t.[DataT] I think).
 
 Using TypedDict as suggested here is not working properly either:
 https://stackoverflow.com/q/74643755/638366
@@ -16,26 +16,23 @@ I also need to add items and __getitem__ because some other parts of the code
 expect it to behave like a dict...
 """
 
-from typing import Dict, Generic, Literal, Optional, Sequence, TypeVar, Union, get_args
+import typing as t
 
-from pydantic import BaseModel, Extra, NonNegativeFloat, NonNegativeInt
-from pydantic.generics import GenericModel
+from pydantic import BaseModel, ConfigDict, NonNegativeFloat, NonNegativeInt
 
-DataT = TypeVar('DataT')
+DataT = t.TypeVar("DataT")
 
 
-class CyclingParameter(GenericModel, Generic[DataT]):
+class CyclingParameter(BaseModel, t.Generic[DataT]):
     "Cycling parameter of type DataT"
+
     label: str  # the label used in a widget
     description: str = ""  # a long description
     units: str = ""  # physical units of this parameter
-    value: Optional[DataT] = None  # the set value
-    default_value: Optional[DataT] = None  # the default value
+    value: t.Optional[DataT] = None  # the set value
+    default_value: t.Optional[DataT] = None  # the default value
     required: bool = False  # True if parameter is required
-
-    class Config:
-        validate_assignment = True
-        extra = Extra.forbid
+    model_config = ConfigDict(validate_assignment=True, extra="forbid")
 
     # @classmethod
     # def __concrete_name__(cls: Type[Any], params: Tuple[Type[Any], ...]) -> str:
@@ -43,34 +40,31 @@ class CyclingParameter(GenericModel, Generic[DataT]):
 
 
 class CyclingTechnique(BaseModel):
-    device: Literal["worker", "MPG2"]  # the device name
+    device: t.Literal["worker", "MPG2"]  # the device name
     technique: str  # the technique name for tomato
     short_name: str  # short name for the technique
     name: str  # a custom name
     description: str = ""
-    parameters: Dict[str, CyclingParameter]
-
-    class Config:
-        validate_assignment = True
-        extra = Extra.forbid
+    parameters: t.Dict[str, CyclingParameter]
+    model_config = ConfigDict(validate_assignment=True, extra="forbid")
 
 
-allowed_I_ranges = Literal["keep",
-                           "100 pA",
-                           "1 nA",
-                           "10 nA",
-                           "100 nA",
-                           "1 uA",
-                           "10 uA",
-                           "100 uA",
-                           "1 mA",
-                           "10 mA",
-                           "100 mA",
-                           "1 A",
-                           "booster",
-                           "auto",
-                           ]
-allowed_E_ranges = Literal["+-2.5 V", "+-5.0 V", "+-10 V", "auto",]
+allowed_I_ranges = t.Literal["keep",
+                             "100 pA",
+                             "1 nA",
+                             "10 nA",
+                             "100 nA",
+                             "1 uA",
+                             "10 uA",
+                             "100 uA",
+                             "1 mA",
+                             "10 mA",
+                             "100 mA",
+                             "1 A",
+                             "booster",
+                             "auto",
+                             ]
+allowed_E_ranges = t.Literal["+-2.5 V", "+-5.0 V", "+-10 V", "auto",]
 
 ################################################################################
 # SPECIFIC TECHNIQUES
@@ -78,11 +72,11 @@ allowed_E_ranges = Literal["+-2.5 V", "+-5.0 V", "+-10 V", "auto",]
 
 
 class DummySequential(CyclingTechnique):
-    device: Literal["worker"] = "worker"
-    technique: Literal["sequential"] = "sequential"
-    short_name: Literal["DUMMY_SEQUENTIAL"] = "DUMMY_SEQUENTIAL"
-    name = "Dummy Sequential"
-    description = "Dummy worker - sequential numbers"
+    device: t.Literal["worker"] = "worker"
+    technique: t.Literal["sequential"] = "sequential"
+    short_name: t.Literal["DUMMY_SEQUENTIAL"] = "DUMMY_SEQUENTIAL"
+    name: str = "Dummy Sequential"
+    description: str = "Dummy worker - sequential numbers"
 
     class InternalParameters(BaseModel):
         time: CyclingParameter[NonNegativeFloat]
@@ -90,32 +84,37 @@ class DummySequential(CyclingTechnique):
 
         @property
         def items(self):
-            return dict(self._iter()).items
+            return dict(iter(self)).items
 
         def __getitem__(self, item):
             return getattr(self, item)
 
-    # parameters: Dict[str, CyclingParameter] = {
+    # parameters: t.Dict[str, CyclingParameter] = {
     parameters: InternalParameters = InternalParameters(
         **{
-            "time": CyclingParameter[NonNegativeFloat](label="Time:", units="s", default_value=100., required=True),
+            "time": CyclingParameter[NonNegativeFloat](
+                label="Time:",
+                units="s",
+                default_value=100.0,
+                required=True,
+            ),
             "delay": CyclingParameter[NonNegativeFloat](
                 label="Delay:",
                 units="s",
                 default_value=1.0,
                 required=True,
-            )
+            ),
         }
     )
 
 
 ################################################################################
 class DummyRandom(CyclingTechnique):
-    device: Literal["worker"] = "worker"
-    technique: Literal["random"] = "random"
-    short_name: Literal["DUMMY_RANDOM"] = "DUMMY_RANDOM"
-    name = "Dummy Random"
-    description = "Dummy worker - random numbers"
+    device: t.Literal["worker"] = "worker"
+    technique: t.Literal["random"] = "random"
+    short_name: t.Literal["DUMMY_RANDOM"] = "DUMMY_RANDOM"
+    name: str = "Dummy Random"
+    description: str = "Dummy worker - random numbers"
 
     class InternalParameters(BaseModel):
         time: CyclingParameter[NonNegativeFloat]
@@ -123,32 +122,37 @@ class DummyRandom(CyclingTechnique):
 
         @property
         def items(self):
-            return dict(self._iter()).items
+            return dict(iter(self)).items
 
         def __getitem__(self, item):
             return getattr(self, item)
 
-    # parameters: Dict[str, CyclingParameter] = {
+    # parameters: t.Dict[str, CyclingParameter] = {
     parameters: InternalParameters = InternalParameters(
         **{
-            "time": CyclingParameter[NonNegativeFloat](label="Time:", units="s", default_value=100., required=True),
+            "time": CyclingParameter[NonNegativeFloat](
+                label="Time:",
+                units="s",
+                default_value=100.0,
+                required=True,
+            ),
             "delay": CyclingParameter[NonNegativeFloat](
                 label="Delay:",
                 units="s",
                 default_value=1.0,
                 required=True,
-            )
+            ),
         }
     )
 
 
 ################################################################################
 class OpenCircuitVoltage(CyclingTechnique):
-    device: Literal["MPG2"] = "MPG2"
-    technique: Literal["open_circuit_voltage"] = "open_circuit_voltage"
-    short_name: Literal["OCV"] = "OCV"
-    name = "OCV"
-    description = "Open circuit voltage"
+    device: t.Literal["MPG2"] = "MPG2"
+    technique: t.Literal["open_circuit_voltage"] = "open_circuit_voltage"
+    short_name: t.Literal["OCV"] = "OCV"
+    name: str = "OCV"
+    description: str = "Open circuit voltage"
 
     class InternalParameters(BaseModel):
         time: CyclingParameter[NonNegativeFloat]
@@ -159,12 +163,12 @@ class OpenCircuitVoltage(CyclingTechnique):
 
         @property
         def items(self):
-            return dict(self._iter()).items
+            return dict(iter(self)).items
 
         def __getitem__(self, item):
             return getattr(self, item)
 
-    # parameters: Dict[str, CyclingParameter] = {
+    # parameters: t.Dict[str, CyclingParameter] = {
     parameters: InternalParameters = InternalParameters(
         **{
             "time":
@@ -212,11 +216,11 @@ class OpenCircuitVoltage(CyclingTechnique):
 
 ################################################################################
 class ConstantVoltage(CyclingTechnique):
-    device: Literal["MPG2"] = "MPG2"
-    technique: Literal["constant_voltage"] = "constant_voltage"
-    short_name: Literal["CV"] = "CV"
-    name = "CV"
-    description = "Controlled voltage technique, with optional current and voltage limits"
+    device: t.Literal["MPG2"] = "MPG2"
+    technique: t.Literal["constant_voltage"] = "constant_voltage"
+    short_name: t.Literal["CV"] = "CV"
+    name: str = "CV"
+    description: str = ("Controlled voltage technique, with optional current and voltage limits")
 
     class InternalParameters(BaseModel):
         time: CyclingParameter[NonNegativeFloat]
@@ -230,17 +234,17 @@ class ConstantVoltage(CyclingTechnique):
         exit_on_limit: CyclingParameter[bool]
         limit_voltage_max: CyclingParameter[float]
         limit_voltage_min: CyclingParameter[float]
-        limit_current_max: CyclingParameter[Union[float, str]]
-        limit_current_min: CyclingParameter[Union[float, str]]
+        limit_current_max: CyclingParameter[t.Union[float, str]]
+        limit_current_min: CyclingParameter[t.Union[float, str]]
 
         @property
         def items(self):
-            return dict(self._iter()).items
+            return dict(iter(self)).items
 
         def __getitem__(self, item):
             return getattr(self, item)
 
-    # parameters: Dict[str, CyclingParameter] = {
+    # parameters: t.Dict[str, CyclingParameter] = {
     parameters: InternalParameters = InternalParameters(
         **{
             "time":
@@ -317,44 +321,44 @@ class ConstantVoltage(CyclingTechnique):
                 label="Maximum voltage:",
                 description="Define the upper limit of voltage for this step",
                 units="V",
-                default_value=None
+                default_value=None,
             ),
             "limit_voltage_min":
             CyclingParameter[float](
                 label="Minimum voltage:",
                 description="Define the lower limit of voltage for this step",
                 units="V",
-                default_value=None
+                default_value=None,
             ),
             "limit_current_max":
-            CyclingParameter[Union[float, str]](
+            CyclingParameter[t.Union[float, str]](
                 label="Maximum current:",
                 description="Define the upper limit of current for this step",
                 units="I",
-                default_value=None
+                default_value=None,
             ),
             "limit_current_min":
-            CyclingParameter[Union[float, str]](
+            CyclingParameter[t.Union[float, str]](
                 label="Minimum current:",
                 description="Define the lower limit of current for this step",
                 units="I",
-                default_value=None
-            )
+                default_value=None,
+            ),
         }
     )
 
 
 ################################################################################
 class ConstantCurrent(CyclingTechnique):
-    device: Literal["MPG2"] = "MPG2"
-    technique: Literal["constant_current"] = "constant_current"
-    short_name: Literal["CC"] = "CC"
-    name = "CC"
-    description = "Controlled current technique, with optional voltage and current limits"
+    device: t.Literal["MPG2"] = "MPG2"
+    technique: t.Literal["constant_current"] = "constant_current"
+    short_name: t.Literal["CC"] = "CC"
+    name: str = "CC"
+    description: str = ("Controlled current technique, with optional voltage and current limits")
 
     class InternalParameters(BaseModel):
         time: CyclingParameter[NonNegativeFloat]
-        current: CyclingParameter[Union[float, str]]
+        current: CyclingParameter[t.Union[float, str]]
         record_every_dt: CyclingParameter[NonNegativeFloat]
         record_every_dE: CyclingParameter[NonNegativeFloat]
         I_range: CyclingParameter[allowed_I_ranges]
@@ -364,17 +368,17 @@ class ConstantCurrent(CyclingTechnique):
         exit_on_limit: CyclingParameter[bool]
         limit_voltage_max: CyclingParameter[float]
         limit_voltage_min: CyclingParameter[float]
-        limit_current_max: CyclingParameter[Union[float, str]]
-        limit_current_min: CyclingParameter[Union[float, str]]
+        limit_current_max: CyclingParameter[t.Union[float, str]]
+        limit_current_min: CyclingParameter[t.Union[float, str]]
 
         @property
         def items(self):
-            return dict(self._iter()).items
+            return dict(iter(self)).items
 
         def __getitem__(self, item):
             return getattr(self, item)
 
-    # parameters: Dict[str, CyclingParameter] = {
+    # parameters: t.Dict[str, CyclingParameter] = {
     parameters: InternalParameters = InternalParameters(
         **{
             "time":
@@ -386,7 +390,7 @@ class ConstantCurrent(CyclingTechnique):
                 required=True,
             ),
             "current":
-            CyclingParameter[Union[float, str]](
+            CyclingParameter[t.Union[float, str]](
                 label="Step current:",
                 description="Current during the current step",
                 units="I",
@@ -451,55 +455,55 @@ class ConstantCurrent(CyclingTechnique):
                 label="Maximum voltage:",
                 description="Define the upper limit of voltage for this step",
                 units="V",
-                default_value=None
+                default_value=None,
             ),
             "limit_voltage_min":
             CyclingParameter[float](
                 label="Minimum voltage:",
                 description="Define the lower limit of voltage for this step",
                 units="V",
-                default_value=None
+                default_value=None,
             ),
             "limit_current_max":
-            CyclingParameter[Union[float, str]](
+            CyclingParameter[t.Union[float, str]](
                 label="Maximum current:",
                 description="Define the upper limit of current for this step",
                 units="I",
-                default_value=None
+                default_value=None,
             ),
             "limit_current_min":
-            CyclingParameter[Union[float, str]](
+            CyclingParameter[t.Union[float, str]](
                 label="Minimum current:",
                 description="Define the lower limit of current for this step",
                 units="I",
-                default_value=None
-            )
+                default_value=None,
+            ),
         }
     )
 
 
 ################################################################################
 # class SweepVoltage(CyclingTechnique):
-#    technique: Literal["sweep_voltage"] = "sweep_voltage"
-#    short_name: Literal["LSV"] = "LSV"
-#    name = "LSV"
-#    description = "Controlled voltage technique, allowing linear change of voltage between pre-defined endpoints as a function of time, with optional current and voltage limits"
+#    technique: t.Literal["sweep_voltage"] = "sweep_voltage"
+#    short_name: t.Literal["LSV"] = "LSV"
+#    name: str = "LSV"
+#    description: str = "Controlled voltage technique, allowing linear change of voltage between pre-defined endpoints as a function of time, with optional current and voltage limits"
 
 ################################################################################
 # class SweepCurrent(CyclingTechnique):
-#    technique: Literal["sweep_current"] = "sweep_current"
-#    short_name: Literal["LSC"] = "LSC"
-#    name = ""
-#    description = "Controlled current technique, allowing linear change of current between pre-defined endpoints as a function of time, with optional current and voltage limits"
+#    technique: t.Literal["sweep_current"] = "sweep_current"
+#    short_name: t.Literal["LSC"] = "LSC"
+#    name: str = ""
+#    description: str = "Controlled current technique, allowing linear change of current between pre-defined endpoints as a function of time, with optional current and voltage limits"
 
 
 ################################################################################
 class Loop(CyclingTechnique):
-    device: Literal["MPG2"] = "MPG2"
-    technique: Literal["loop"] = "loop"
-    short_name: Literal["LOOP"] = "LOOP"
-    name = "LOOP"
-    description = "Loop technique, allowing to repeat a set of preceding techniques in a technique array"
+    device: t.Literal["MPG2"] = "MPG2"
+    technique: t.Literal["loop"] = "loop"
+    short_name: t.Literal["LOOP"] = "LOOP"
+    name: str = "LOOP"
+    description: str = "Loop technique, allowing to repeat a set of preceding techniques in a technique array"
 
     class InternalParameters(BaseModel):
         n_gotos: CyclingParameter[int]
@@ -507,20 +511,18 @@ class Loop(CyclingTechnique):
 
         @property
         def items(self):
-            return dict(self._iter()).items
+            return dict(iter(self)).items
 
         def __getitem__(self, item):
             return getattr(self, item)
 
-    # parameters: Dict[str, CyclingParameter] = {
+    # parameters: t.Dict[str, CyclingParameter] = {
     parameters: InternalParameters = InternalParameters(
         **{
             "n_gotos":
             CyclingParameter[int](
                 label="Repeats",
-                description="""
-                    Number of times the technique will jump; set to -1 for unlimited
-                """,
+                description="Number of times the technique will jump; set to -1 for unlimited",
                 default_value=-1,
                 required=True,
             ),
@@ -539,24 +541,21 @@ class Loop(CyclingTechnique):
 # SEQUENCE OF TECHNIQUES
 ################################################################################
 
-ElectroChemPayloads = Union[DummySequential,
-                            DummyRandom,
-                            OpenCircuitVoltage,
-                            ConstantCurrent,
-                            ConstantVoltage,
-                            #    SweepCurrent,
-                            #    SweepVoltage,
-                            Loop,
-                            ]
+ElectroChemPayloads = t.Union[DummySequential,
+                              DummyRandom,
+                              OpenCircuitVoltage,
+                              ConstantCurrent,
+                              ConstantVoltage,
+                              #    SweepCurrent,
+                              #    SweepVoltage,
+                              Loop,
+                              ]
 
 
 class ElectroChemSequence(BaseModel):
     name: str = ""
-    method: Sequence[ElectroChemPayloads]
-
-    class Config:
-        validate_assignment = True
-        extra = Extra.forbid
+    method: t.Sequence[ElectroChemPayloads]
+    model_config = ConfigDict(validate_assignment=True, extra="forbid")
 
     @property
     def n_steps(self):
@@ -568,7 +567,7 @@ class ElectroChemSequence(BaseModel):
         self.name = name
 
     def add_step(self, elem):
-        if not isinstance(elem, get_args(ElectroChemPayloads)):
+        if not isinstance(elem, t.get_args(ElectroChemPayloads)):
             raise ValueError("Invalid technique")
         self.method.append(elem)
 

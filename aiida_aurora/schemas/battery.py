@@ -8,18 +8,18 @@ from .utils import extract_schema_types
 
 
 class Component(BaseModel):
-    description: Optional[str]
+    description: Optional[str] = None
 
 
 class Diameter(BaseModel):
     nominal: NonNegativeFloat
-    actual: Optional[NonNegativeFloat]
+    actual: Optional[NonNegativeFloat] = None
     units: Literal["mm"] = "mm"
 
 
 class Capacity(BaseModel):
     nominal: NonNegativeFloat
-    actual: Optional[NonNegativeFloat]
+    actual: Optional[NonNegativeFloat] = None
     units: Literal["mAh", "Ah"] = "mAh"
 
 
@@ -32,7 +32,7 @@ class Electrolyte(Component):
 class ElectrodeWeight(BaseModel):
     total: NonNegativeFloat
     collector: NonNegativeFloat
-    net: Optional[NonNegativeFloat]
+    net: Optional[NonNegativeFloat] = None
     units: Literal["mg", "g"] = "mg"
 
 
@@ -55,7 +55,7 @@ class Spacer(Component):
 
 
 class Composition(BaseModel):
-    description: Optional[str]
+    description: Optional[str] = None
     anode: Electrode
     cathode: Electrode
     electrolyte: Electrolyte
@@ -68,7 +68,7 @@ class BatterySpecs(BaseModel):
     manufacturer: str  # ? use `Literal` of available?
     composition: Composition
     capacity: Capacity
-    np_ratio: Optional[str]
+    np_ratio: Optional[str] = None
 
 
 class BatteryMetadata(BaseModel):
@@ -86,7 +86,7 @@ class ChargeState(Flag):
 
 
 class BatteryState(BaseModel):
-    used = False
+    used: bool = False
     charged: ChargeState = ChargeState.CHARGED
 
 
