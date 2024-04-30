@@ -1,5 +1,5 @@
-[![Build Status](https://github.com/epfl-theos/aiida-aurora/workflows/ci/badge.svg?branch=main)](https://github.com/epfl-theos/aiida-aurora/actions)
-[![Coverage Status](https://coveralls.io/repos/github/epfl-theos/aiida-aurora/badge.svg?branch=main)](https://coveralls.io/github/epfl-theos/aiida-aurora?branch=main)
+[![Build Status](https://github.com/EmpaEconversion/aiida-aurora/workflows/ci/badge.svg?branch=main)](https://github.com/EmpaEconversion/aiida-aurora/actions)
+[![Coverage Status](https://coveralls.io/repos/github/EmpaEconversion/aiida-aurora/badge.svg?branch=main)](https://coveralls.io/github/EmpaEconversion/aiida-aurora?branch=main)
 [![Docs status](https://readthedocs.org/projects/aiida-aurora/badge)](http://aiida-aurora.readthedocs.io/)
 [![PyPI version](https://badge.fury.io/py/aiida-aurora.svg)](https://badge.fury.io/py/aiida-aurora)
 
@@ -61,7 +61,7 @@ verdi data aurora export <PK>
 ## Development
 
 ```shell
-git clone https://github.com/epfl-theos/aiida-aurora .
+git clone https://github.com/EmpaEconversion/aiida-aurora .
 cd aiida-aurora
 pip install -e .[pre-commit,testing]  # install extra dependencies
 pre-commit install  # install pre-commit hooks

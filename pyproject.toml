@@ -35,7 +35,7 @@ dependencies = [
 ]
 
 [project.urls]
-Source = "https://github.com/epfl-theos/aiida-aurora"
+Source = "https://github.com/EmpaEconversion/aiida-aurora"
 
 [project.optional-dependencies]
 testing = [

@@ -9,7 +9,7 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    if: github.repository == 'epfl-theos/aiida-aurora' && startsWith(github.ref, 'refs/tags/')
+    if: github.repository == 'EmpaEconversion/aiida-aurora' && startsWith(github.ref, 'refs/tags/')
 
     steps:
     - name: Checkout repository

@@ -117,10 +117,10 @@ directory, so you may need to log in as root and install the package system-wide
 
 The aurora plugin can also be installed via PyPi package
 (and if you are installing the
-[aiidalab-auror app](https://github.com/epfl-theos/aiidalab-aurora),
+[aiidalab-auror app](https://github.com/EmpaEconversion/aiidalab-aurora),
 the plugin will be installed as a dependency).
 However, if you are going to develop the package, you will probably prefer to clone
-it from the [github repo](https://github.com/epfl-theos/aiida-aurora), or your own
+it from the [github repo](https://github.com/EmpaEconversion/aiida-aurora), or your own
 fork.
 In this case you may also want to install with `pip install -e .[pre-commit]` and
 then do `pre-commit install` too.

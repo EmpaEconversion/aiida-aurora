@@ -10,7 +10,7 @@ Installation
 
 Use the following commands to install the plugin::
 
-    git clone https://github.com/epfl-theos/aiida-aurora .
+    git clone https://github.com/EmpaEconversion/aiida-aurora .
     cd aiida-aurora
     pip install -e .  # also installs aiida, if missing (but not postgres)
     #pip install -e .[pre-commit,testing] # install extras for more features

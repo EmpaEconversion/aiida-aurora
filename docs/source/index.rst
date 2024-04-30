@@ -5,7 +5,7 @@
 The aiida-aurora plugin for `AiiDA`_
 =====================================================
 
-``aiida-aurora`` is available at http://github.com/epfl-theos/aiida-aurora
+``aiida-aurora`` is available at http://github.com/EmpaEconversion/aiida-aurora
 
 
 .. toctree::
