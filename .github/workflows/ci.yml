@@ -10,26 +10,6 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.10", "3.12"]
-        backend: ['django']
-
-    services:
-      postgres:
-        image: postgres:10
-        env:
-          POSTGRES_DB: test_${{ matrix.backend }}
-          POSTGRES_PASSWORD: ''
-          POSTGRES_HOST_AUTH_METHOD: trust
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-      rabbitmq:
-        image: rabbitmq:latest
-        ports:
-          - 5672:5672
 
     steps:
     - uses: actions/checkout@v7
@@ -46,10 +26,9 @@ jobs:
 
     - name: Run test suite
       env:
-        AIIDA_TEST_BACKEND: ${{ matrix.backend }}
         # show timings of tests
         PYTEST_ADDOPTS: "--durations=0 --cov=aiida_aurora --cov-append"
-      run: py.test tests
+      run: pytest
 
   docs:
     runs-on: ubuntu-latest
