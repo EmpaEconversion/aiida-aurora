@@ -27,11 +27,11 @@ classifiers = [
 keywords = ["aiida", "plugin", "aurora"]
 requires-python = ">=3.9"
 dependencies = [
-    "aiida-core>=2.0,<3",
+    "aiida-core>=2.6,<3",
     "aiida-ssh2win>=0.2",
     "dgbowl-schemas>=116",
     "scipy>=1.5.4,<2",
-    "pandas~=1.5",
+    "pandas~=2.3",
 ]
 
 [project.urls]
@@ -98,6 +98,7 @@ disable = [
 
 [tool.pytest.ini_options]
 # Configuration for [pytest](https://docs.pytest.org)
+testpaths = ["tests"]
 python_files = "test_*.py example_*.py"
 filterwarnings = [
     "ignore::DeprecationWarning:aiida:",
