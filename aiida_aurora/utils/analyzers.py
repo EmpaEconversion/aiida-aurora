@@ -126,7 +126,7 @@ class CapacityAnalyzer(Analyzer):
         Qt = self.threshold * Qs
         C_per = Q / Qs * 100
 
-        self.report = f"cycle #{n} : {Q = :.2f} mAh ({C_per:.1f}%)"
+        self.report = f"cycle #{n} : {Q = :.2f} mAh ({C_per:.1f}%)"  # noqa: E203
         self.status = f"(cycle #{n} : C @ {C_per:.1f}%)"
 
         if Q < Qt:

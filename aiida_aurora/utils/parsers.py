@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.integrate import cumtrapz
+from scipy.integrate import cumulative_trapezoid
 
 from aiida.orm import ArrayData
 
@@ -99,7 +99,7 @@ def post_process_data(t: np.ndarray, Ewe: np.ndarray, I: np.ndarray) -> dict:
     mask = I != 0  # filter out zero current
     t, Ewe, I = t[mask], Ewe[mask], I[mask]
 
-    Q = cumtrapz(I, t, axis=0, initial=0)
+    Q = cumulative_trapezoid(I, t, axis=0, initial=0)
 
     # mark half-cycles (including first and last values)
     idx = np.where(np.diff(np.sign(I), prepend=0) != 0)[0]
