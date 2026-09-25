@@ -24,12 +24,7 @@ import aiida_aurora
 # In-memory profile so the aiida directives work without a configured AiiDA installation.
 load_profile(SqliteTempBackend.create_profile(), allow_switch=True)
 
-# If we are not on READTHEDOCS load the Sphinx theme manually
-if not os.environ.get("READTHEDOCS", None):
-    import sphinx_rtd_theme
-
-    html_theme = "sphinx_rtd_theme"
-    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+html_theme = "sphinx_rtd_theme"
 
 # -- General configuration ------------------------------------------------
 
@@ -54,7 +49,9 @@ extensions = [
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
-    "aiida": ("https://aiida-core.readthedocs.io/en/latest", None),
+    # Docs from v2.8 onwards publish no API inventory
+    "aiida": ("https://aiida-core.readthedocs.io/en/v2.7.3", None),
+    "pandas": ("https://pandas.pydata.org/docs", None),
 }
 
 # Add any paths that contain templates here, relative to this directory.
@@ -150,9 +147,7 @@ pygments_style = "sphinx"
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-html_theme_options = {
-    "display_version": True,
-}
+html_theme_options = {}
 
 # Add any paths that contain custom themes here, relative to this directory.
 # ~ html_theme_path = ["."]
@@ -363,3 +358,10 @@ with open('nitpick-exceptions') as handle:
     nitpick_ignore = [
         tuple(line.strip().split(None, 1)) for line in handle.readlines() if line.strip() and not line.startswith('#')
     ]
+
+# Undocumented pydantic constraint types and aiida's generated ORM model classes
+nitpick_ignore_regex = [
+    ("py:class", r"(annotated_types\.)?G[te]"),
+    ("py:class", r".*\.(Model|ConstructorModel|AttributesWriteModel|AttributesModel|ReadModel|WriteModel)"),
+    ("py:obj", r"typing\.Annotated\[.*"),
+]

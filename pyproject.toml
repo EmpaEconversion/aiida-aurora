@@ -25,7 +25,7 @@ classifiers = [
     "Framework :: AiiDA"
 ]
 keywords = ["aiida", "plugin", "aurora"]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "aiida-core>=2.6,<3",
     "aiida-ssh2win>=0.2",
@@ -128,12 +128,12 @@ known_aiida = ['aiida']
 [tool.tox]
 legacy_tox_ini = """
 [tox]
-envlist = py38
+envlist = py310,py312
 
 [testenv]
 usedevelop=True
 
-[testenv:py{38,39,310}]
+[testenv:py{310,311,312}]
 description = Run the test suite against a python version
 extras = testing
 setenv =
