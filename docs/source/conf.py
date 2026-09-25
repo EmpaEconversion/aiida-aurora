@@ -14,15 +14,15 @@ import os
 import sys
 import time
 
-from aiida.manage.configuration import load_documentation_profile
+from aiida.manage.configuration import load_profile
+from aiida.storage.sqlite_temp import SqliteTempBackend
 
 import aiida_aurora
 
 # -- AiiDA-related setup --------------------------------------------------
 
-# Load the dummy profile even if we are running locally, this way the documentation will succeed even if the current
-# default profile of the AiiDA installation does not use a Django backend.
-load_documentation_profile()
+# In-memory profile so the aiida directives work without a configured AiiDA installation.
+load_profile(SqliteTempBackend.create_profile(), allow_switch=True)
 
 # If we are not on READTHEDOCS load the Sphinx theme manually
 if not os.environ.get("READTHEDOCS", None):
