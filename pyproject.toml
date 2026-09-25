@@ -30,7 +30,7 @@ dependencies = [
     "aiida-core>=2.6,<3",
     "aiida-ssh2win>=0.2",
     "dgbowl-schemas>=116",
-    "scipy>=1.5.4,<2",
+    "scipy>=1.6,<2",
     "pandas~=2.3",
 ]
 
